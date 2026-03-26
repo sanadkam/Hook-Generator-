@@ -6,8 +6,8 @@ import Link from 'next/link';
 
 const PLATFORMS = ['TikTok', 'YouTube', 'Instagram', 'Twitter/X', 'LinkedIn'];
 const NICHES = ['Finance', 'Fitness', 'Beauty', 'Tech', 'Food', 'Gaming', 'Business', 'Lifestyle', 'Education', 'Comedy'];
-const FREE_LIMIT = 5;
-const STORAGE_KEY = 'hookscore_usage_v2';
+const FREE_LIMIT = 3;
+const STORAGE_KEY = 'hookscore_usage_v3'; // bumped version resets existing users
 const HISTORY_KEY = 'hookscore_history_v2';
 const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_MB = 8;
@@ -19,17 +19,14 @@ function getUsageData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { count: 0 };
-    const d = JSON.parse(raw);
-    if (d.date !== new Date().toDateString()) return { count: 0 };
-    return d;
+    return JSON.parse(raw);
   } catch { return { count: 0 }; }
 }
 
 function incrementUsage() {
-  const today = new Date().toDateString();
   const current = getUsageData();
   const count = current.count + 1;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ count, date: today }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ count }));
   return count;
 }
 
@@ -276,9 +273,9 @@ function UpgradeModal({ onClose }) {
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
         <div className="text-5xl mb-4">🔒</div>
-        <h3 className="text-2xl font-bold mb-2">Daily limit reached</h3>
+        <h3 className="text-2xl font-bold mb-2">Free limit reached</h3>
         <p className="text-white/50 text-sm leading-relaxed mb-8">
-          You've used all {FREE_LIMIT} free generations today. Upgrade to Pro for unlimited daily use.
+          You've used all {FREE_LIMIT} free generations. Upgrade to Pro for unlimited access.
         </p>
         <div className="space-y-3">
           {stripeLink && (
@@ -434,11 +431,11 @@ export default function Home() {
               AI-POWERED
             </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {history.length > 0 && (
               <button
                 onClick={() => setShowHistory(!showHistory)}
-                className="text-sm text-white/35 hover:text-white/65 transition-colors"
+                className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors"
               >
                 History
               </button>
@@ -454,7 +451,7 @@ export default function Home() {
                 Upgrade →
               </button>
             ) : (
-              <span className="text-xs font-mono text-white/25">{remaining} free left</span>
+              <span className="hidden sm:inline text-xs font-mono text-white/25">{remaining} free uses left</span>
             )}
           </div>
         </nav>
@@ -555,15 +552,15 @@ export default function Home() {
 
           {/* Content Input */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
               <p className="text-xs font-mono tracking-widest text-white/25">YOUR CONTENT</p>
               {/* Input mode toggle */}
-              <div className="flex bg-white/[0.05] border border-white/10 rounded-xl p-0.5">
+              <div className="flex bg-white/[0.05] border border-white/10 rounded-xl p-0.5 w-full sm:w-auto">
                 {[['text', '✏️ Paste text'], ['upload', '📎 Upload image']].map(([mode, label]) => (
                   <button
                     key={mode}
                     onClick={() => { setInputMode(mode); setError(null); }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center ${
                       inputMode === mode
                         ? 'bg-white/15 text-white'
                         : 'text-white/35 hover:text-white/60'
@@ -702,8 +699,8 @@ export default function Home() {
               <div className="border border-white/10 rounded-2xl p-6 text-center">
                 <p className="text-white/40 text-sm mb-4">
                   {remaining === 0
-                    ? "You've hit your daily free limit."
-                    : `${remaining} free generation${remaining !== 1 ? 's' : ''} remaining today`}
+                    ? "You've used all your free generations."
+                    : `${remaining} free generation${remaining !== 1 ? 's' : ''} remaining`}
                 </p>
                 <Link
                   href="/pricing"
