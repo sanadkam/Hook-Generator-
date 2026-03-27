@@ -178,15 +178,24 @@ function UploadZone({ file, preview, onFile, onClear }) {
 }
 
 // ─── Upgrade Modal ────────────────────────────────────────────────────────────
-function UpgradeModal({ onClose }) {
+function UpgradeModal({ onClose, reason = 'limit' }) {
   const stripeLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK;
+  const isProFeature = reason === 'proFeature';
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-        <div className="text-5xl mb-4">🔒</div>
-        <h3 className="text-2xl font-bold mb-2">Free limit reached</h3>
-        <p className="text-white/50 text-sm leading-relaxed mb-2">You've used all {FREE_LIMIT} free generations.</p>
-        <p className="text-white/35 text-sm mb-8">Upgrade to Pro for <span className="text-green-400 font-semibold">unlimited hooks</span> + image upload.</p>
+        <div className="text-5xl mb-4">{isProFeature ? '📎' : '🔒'}</div>
+        <h3 className="text-2xl font-bold mb-2">
+          {isProFeature ? 'Pro feature' : 'Free limit reached'}
+        </h3>
+        <p className="text-white/50 text-sm leading-relaxed mb-2">
+          {isProFeature
+            ? 'Image upload is available on Pro.'
+            : `You've used all ${FREE_LIMIT} free generations.`}
+        </p>
+        <p className="text-white/35 text-sm mb-8">
+          Upgrade to Pro for <span className="text-green-400 font-semibold">unlimited hooks</span> + image upload.
+        </p>
         <div className="space-y-3">
           {stripeLink && (
             <a href={stripeLink} target="_blank" rel="noopener noreferrer" className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors">
@@ -215,7 +224,8 @@ export default function Generate() {
   const [loading,    setLoading]    = useState(false);
   const [results,    setResults]    = useState(null);
   const [error,      setError]      = useState(null);
-  const [showUpgrade,  setShowUpgrade]  = useState(false);
+  const [showUpgrade,    setShowUpgrade]    = useState(false);
+  const [upgradeReason,  setUpgradeReason]  = useState('limit'); // 'limit' | 'proFeature'
   const [usageCount,   setUsageCount]   = useState(0);
   const [history,      setHistory]      = useState([]);
   const [showHistory,  setShowHistory]  = useState(false);
@@ -243,7 +253,7 @@ export default function Generate() {
       setError(inputMode === 'text' ? 'Paste your content — a draft, caption, script, or a few notes.' : 'Upload a screenshot or image of your content.');
       return;
     }
-    if (usageCount >= FREE_LIMIT) { setShowUpgrade(true); return; }
+    if (usageCount >= FREE_LIMIT) { setUpgradeReason('limit'); setShowUpgrade(true); return; }
 
     setLoading(true); setError(null); setResults(null);
     try {
@@ -301,7 +311,7 @@ export default function Generate() {
             )}
             <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
             {remaining === 0 ? (
-              <button onClick={() => setShowUpgrade(true)} className="text-xs font-mono text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors">
+              <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-xs font-mono text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors">
                 Upgrade →
               </button>
             ) : (
@@ -355,7 +365,7 @@ export default function Generate() {
                 <div className={`h-full rounded-full transition-all duration-500 ${remaining >= 2 ? 'bg-green-400' : remaining === 1 ? 'bg-yellow-400' : 'bg-red-400'}`} style={{ width: `${(remaining / FREE_LIMIT) * 100}%` }} />
               </div>
               {remaining <= 1 && (
-                <p className="text-xs text-white/30 mt-2">Last free use — <button onClick={() => setShowUpgrade(true)} className="text-green-400 hover:text-green-300 underline underline-offset-2">upgrade for unlimited</button></p>
+                <p className="text-xs text-white/30 mt-2">Last free use — <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-green-400 hover:text-green-300 underline underline-offset-2">upgrade for unlimited</button></p>
               )}
             </div>
           )}
@@ -398,7 +408,7 @@ export default function Generate() {
                 </button>
                 {/* Upload tab — Pro only */}
                 <button
-                  onClick={() => { if (remaining > 0 || usageCount === 0) { setShowUpgrade(true); } else { setInputMode('upload'); setError(null); } setShowUpgrade(true); }}
+                  onClick={() => { setUpgradeReason('proFeature'); setShowUpgrade(true); }}
                   className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center text-white/25 flex items-center justify-center gap-1.5"
                   title="Pro feature"
                 >
@@ -537,7 +547,7 @@ export default function Generate() {
         </main>
       </div>
 
-      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason={upgradeReason} />}
     </>
   );
 }
