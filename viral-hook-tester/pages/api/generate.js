@@ -281,9 +281,9 @@ Respond with ONLY valid JSON (no markdown, no code fences, no commentary):
 
   // ── Call Anthropic API + parse response (single try/catch covers everything) ──
   const MODELS = [
-    'claude-3-5-haiku-20241022',   // fast, cheap, widely available
-    'claude-3-haiku-20240307',     // older fallback
-    'claude-3-5-sonnet-20241022',  // last resort
+    'claude-sonnet-4-6',           // primary — confirmed working on this account
+    'claude-opus-4-6',             // fallback
+    'claude-3-5-sonnet-20241022',  // legacy fallback
   ];
 
   try {
