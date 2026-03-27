@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const features = {
   free: [
-    '7 free hook generations — no signup',
+    '3 free hook generations — no signup',
     '3 hooks per generation',
     'All 5 platforms (TikTok, YouTube, Instagram, Twitter/X, LinkedIn)',
     'All 10 niches',
@@ -68,7 +68,7 @@ export default function Pricing() {
           <div className="text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-black mb-4">Simple pricing</h1>
             <p className="text-white/40 text-lg max-w-md mx-auto">
-              7 free generations, no card needed. Upgrade for unlimited when you're ready.
+              3 free generations, no card needed. Upgrade for unlimited when you're ready.
             </p>
           </div>
 
@@ -83,7 +83,7 @@ export default function Pricing() {
                   <span className="text-5xl font-black">$0</span>
                   <span className="text-white/30 text-sm">/month</span>
                 </div>
-                <p className="text-white/40 text-sm mt-2">7 free uses · No credit card</p>
+                <p className="text-white/40 text-sm mt-2">3 free uses · No credit card</p>
               </div>
 
               <ul className="space-y-3 flex-1 mb-8">
