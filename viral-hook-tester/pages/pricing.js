@@ -117,7 +117,7 @@ export default function Pricing() {
                   </span>
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black">$9</span>
+                  <span className="text-5xl font-black">€4.99</span>
                   <span className="text-white/30 text-sm">/month</span>
                 </div>
                 <p className="text-white/40 text-sm mt-2">For serious content creators</p>
@@ -139,7 +139,7 @@ export default function Pricing() {
                   rel="noopener noreferrer"
                   className="block w-full py-3.5 text-center bg-green-400 hover:bg-green-300 text-black rounded-2xl text-sm font-bold transition-colors"
                 >
-                  Get Pro — $9/month
+                  Get Pro — €4.99/month
                 </a>
               ) : (
                 <div className="block w-full py-3.5 text-center bg-green-400/20 text-green-400/60 border border-green-400/20 rounded-2xl text-sm font-bold cursor-not-allowed">
