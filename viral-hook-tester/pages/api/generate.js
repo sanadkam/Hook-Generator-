@@ -279,70 +279,71 @@ Respond with ONLY valid JSON (no markdown, no code fences, no commentary):
       ]
     : taskPrompt;
 
-  // ── Call Anthropic API ────────────────────────────────────────────────────────
+  // ── Call Anthropic API + parse response (single try/catch covers everything) ──
+  const MODELS = [
+    'claude-3-5-haiku-20241022',   // fast, cheap, widely available
+    'claude-3-haiku-20240307',     // older fallback
+    'claude-3-5-sonnet-20241022',  // last resort
+  ];
+
   try {
-    const message = await client.messages.create({
-      model:      'claude-3-5-sonnet-20241022', // stable, widely-available model
-      max_tokens: 2000,
-      system:     systemPrompt,
-      messages:   [{ role: 'user', content: messageContent }],
-    });
+    // Try each model in order; only retry on 400/404 (model not found)
+    let message;
+    for (const modelId of MODELS) {
+      try {
+        message = await client.messages.create({
+          model:      modelId,
+          max_tokens: 2000,
+          system:     systemPrompt,
+          messages:   [{ role: 'user', content: messageContent }],
+        });
+        break; // success
+      } catch (modelErr) {
+        console.error(`Model ${modelId} failed (${modelErr.status}):`, modelErr.message);
+        if (modelId === MODELS[MODELS.length - 1]) throw modelErr; // rethrow on last attempt
+        if (modelErr.status !== 400 && modelErr.status !== 404) throw modelErr; // non-model error — stop retrying
+        // otherwise loop to next model
+      }
+    }
 
-    const raw = message.content[0]?.text?.trim() ?? '';
-
-    // Strip markdown code fences if the model wraps JSON in them
+    const raw     = message.content[0]?.text?.trim() ?? '';
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+
     if (!jsonMatch) {
-      console.error('No JSON found in model response. Raw:', raw.slice(0, 300));
-      throw new Error('No JSON in response');
+      console.error('No JSON in response. Raw:', raw.slice(0, 300));
+      return res.status(500).json({ error: 'Unexpected AI response. Please try again.' });
     }
 
     const result = JSON.parse(jsonMatch[0]);
 
     if (!result.hooks || !Array.isArray(result.hooks) || result.hooks.length === 0) {
-      throw new Error('Invalid response structure');
+      return res.status(500).json({ error: 'Unexpected AI response. Please try again.' });
     }
 
-    // Clamp all scores to 0–100
+    // Clamp all scores 0–100
     result.hooks = result.hooks.map(hook => ({
       ...hook,
       overallScore: Math.min(100, Math.max(0, Math.round(Number(hook.overallScore) || 0))),
       scores: Object.fromEntries(
         Object.entries(hook.scores || {}).map(([k, v]) => [
-          k,
-          Math.min(100, Math.max(0, Math.round(Number(v) || 0))),
+          k, Math.min(100, Math.max(0, Math.round(Number(v) || 0))),
         ])
       ),
     }));
 
-    // Clamp winner index
     result.winner = Math.min(result.hooks.length - 1, Math.max(0, Number(result.winner) || 0));
-
     return res.status(200).json(result);
 
   } catch (err) {
-    // Log the full error server-side for debugging; never expose internals to client
-    console.error('Generate error:', {
-      message: err.message,
-      status:  err.status,
-      type:    err.constructor?.name,
-    });
+    console.error('Generate error:', { message: err.message, status: err.status, type: err.constructor?.name });
 
-    if (err.status === 401) {
-      return res.status(500).json({ error: 'API key error. Please contact support.' });
-    }
+    if (err.status === 401) return res.status(500).json({ error: 'API key error. Please contact support.' });
     if (err.status === 429) {
       res.setHeader('Retry-After', '30');
-      return res.status(429).json({ error: 'AI is busy right now. Please retry in a moment.' });
+      return res.status(429).json({ error: 'AI is busy. Please retry in a moment.' });
     }
-    if (err.status === 400 || err.status === 404) {
-      return res.status(500).json({ error: 'Model unavailable. Please try again.' });
-    }
-    if (err instanceof SyntaxError) {
-      return res.status(500).json({ error: 'Unexpected AI response. Please try again.' });
-    }
+    if (err.status === 529 || err.status === 503) return res.status(503).json({ error: 'AI is overloaded. Please retry in a moment.' });
 
     return res.status(500).json({ error: 'Generation failed. Please try again.' });
   }
