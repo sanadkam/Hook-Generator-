@@ -285,7 +285,7 @@ function UpgradeModal({ onClose }) {
               rel="noopener noreferrer"
               className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors"
             >
-              Upgrade to Pro — $9/month
+              Upgrade to Pro — €4.99/month
             </a>
           )}
           <Link
@@ -296,7 +296,7 @@ function UpgradeModal({ onClose }) {
           </Link>
         </div>
         <button onClick={onClose} className="mt-5 text-sm text-white/25 hover:text-white/50 transition-colors">
-          Maybe tomorrow
+          Not now
         </button>
       </div>
     </div>
@@ -320,6 +320,7 @@ export default function Home() {
   const [usageCount, setUsageCount] = useState(0);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [winnerCopied, setWinnerCopied] = useState(false);
   const resultsRef = useRef(null);
 
   useEffect(() => {
@@ -397,6 +398,18 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
 
+      // Always derive winner client-side from highest overallScore so the
+      // winner banner and hook cards are always in sync.
+      if (data.hooks && data.hooks.length > 0) {
+        let bestIdx = 0;
+        let bestScore = -1;
+        data.hooks.forEach((h, idx) => {
+          if (h.overallScore > bestScore) { bestScore = h.overallScore; bestIdx = idx; }
+        });
+        data.winner = bestIdx;
+      }
+
+      setWinnerCopied(false);
       setResults(data);
       const newCount = incrementUsage();
       setUsageCount(newCount);
@@ -636,7 +649,7 @@ export default function Home() {
 
           {remaining <= 2 && remaining > 0 && (
             <p className="text-center text-xs text-white/20 mt-3">
-              {remaining} free generation{remaining !== 1 ? 's' : ''} remaining today
+              {remaining} free generation{remaining !== 1 ? 's' : ''} remaining
             </p>
           )}
 
@@ -671,10 +684,19 @@ export default function Home() {
                   </div>
                   {/* Quick copy on winner */}
                   <button
-                    onClick={() => navigator.clipboard.writeText(results.hooks[results.winner].text)}
-                    className="mt-4 px-6 py-2.5 bg-green-400 hover:bg-green-300 text-black text-sm font-bold rounded-xl transition-colors"
+                    onClick={() => {
+                      navigator.clipboard.writeText(results.hooks[results.winner].text).then(() => {
+                        setWinnerCopied(true);
+                        setTimeout(() => setWinnerCopied(false), 2000);
+                      });
+                    }}
+                    className={`mt-4 px-6 py-2.5 text-sm font-bold rounded-xl transition-all active:scale-95 ${
+                      winnerCopied
+                        ? 'bg-green-400/20 text-green-400 border border-green-400/40'
+                        : 'bg-green-400 hover:bg-green-300 text-black'
+                    }`}
                   >
-                    Copy winning hook
+                    {winnerCopied ? '✓ Copied!' : 'Copy winning hook'}
                   </button>
                 </div>
               )}
