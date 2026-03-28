@@ -1,35 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
 
-// âââ Constants ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Constants ───────────────────────────────────────────────────────────────
 const PLATFORMS = ['TikTok', 'YouTube', 'Instagram', 'Twitter/X', 'LinkedIn'];
 const NICHES = ['Finance', 'Fitness', 'Beauty', 'Tech', 'Food', 'Gaming', 'Business', 'Lifestyle', 'Education', 'Comedy'];
 const FREE_LIMIT = 3;
-const STORAGE_KEY = 'hookscore_polish_v1';
 
-function getUsage() {
-  if (typeof window === 'undefined') return 0;
-  try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const month = new Date().toISOString().slice(0, 7);
-    if (data.month !== month) return 0;
-    return data.count || 0;
-  } catch { return 0; }
-}
-
-function incrementUsage() {
-  if (typeof window === 'undefined') return 0;
-  try {
-    const month = new Date().toISOString().slice(0, 7);
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const count = (data.month === month ? data.count || 0 : 0) + 1;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ month, count }));
-    return count;
-  } catch { return 0; }
-}
-
-// âââ Utilities ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Utilities ───────────────────────────────────────────────────────────────
 function scoreColor(s) { return s >= 75 ? 'text-green-400' : s >= 55 ? 'text-yellow-400' : 'text-red-400'; }
 function scoreBarColor(s) { return s >= 75 ? 'bg-green-400' : s >= 55 ? 'bg-yellow-400' : 'bg-red-400'; }
 function scoreLabel(s) { return s >= 88 ? 'Exceptional' : s >= 75 ? 'Strong' : s >= 60 ? 'Decent' : s >= 45 ? 'Weak' : 'Skip it'; }
@@ -38,7 +18,7 @@ function styleLabel(s) {
   return map[s] || s;
 }
 
-// âââ Score Bar ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Score Bar ───────────────────────────────────────────────────────────────
 function ScoreBar({ label, score, delay = 0 }) {
   const [w, setW] = useState(0);
   useEffect(() => {
@@ -58,7 +38,7 @@ function ScoreBar({ label, score, delay = 0 }) {
   );
 }
 
-// âââ Rewrite Card âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Rewrite Card ─────────────────────────────────────────────────────────────
 function RewriteCard({ rewrite, rank, delay = 0 }) {
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -66,7 +46,10 @@ function RewriteCard({ rewrite, rank, delay = 0 }) {
     const t = setTimeout(() => setVisible(true), delay);
     return () => clearTimeout(t);
   }, [delay]);
-  const copy = () => navigator.clipboard.writeText(rewrite.text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  const copy = () => navigator.clipboard.writeText(rewrite.text).then(() => {
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  });
   return (
     <div className={`border border-white/10 bg-white/[0.025] rounded-2xl p-5 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
       <div className="flex items-start justify-between gap-3 mb-4">
@@ -103,7 +86,90 @@ function RewriteCard({ rewrite, rank, delay = 0 }) {
   );
 }
 
-// âââ Upgrade Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Auth Modal ───────────────────────────────────────────────────────────────
+function AuthModal({ onClose, onSuccess }) {
+  const [mode, setMode] = useState('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [magicSent, setMagicSent] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!supabase) return;
+    setLoading(true);
+    setError(null);
+    try {
+      if (mode === 'magic') {
+        const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/polish` } });
+        if (error) throw error;
+        setMagicSent(true);
+      } else if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/polish` } });
+        if (error) throw error;
+        setMagicSent(true);
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (data.session) { onSuccess(data.session); onClose(); }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+        {magicSent ? (
+          <div className="text-center">
+            <div className="text-4xl mb-4">📬</div>
+            <h3 className="text-xl font-bold mb-2">Check your email</h3>
+            <p className="text-white/50 text-sm leading-relaxed mb-6">We sent a magic link to <span className="text-white/80">{email}</span>. Click it to sign in and continue.</p>
+            <button onClick={onClose} className="text-sm text-white/30 hover:text-white/60 transition-colors">Close</button>
+          </div>
+        ) : (
+          <>
+            <div className="text-center mb-6">
+              <div className="text-3xl mb-3">🔒</div>
+              <h3 className="text-xl font-bold mb-1">{mode === 'signup' ? 'Create your account' : 'Sign in to continue'}</h3>
+              <p className="text-white/40 text-sm">Free account • 3 improvements/month</p>
+            </div>
+            <form onSubmit={submit} className="space-y-3">
+              <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required
+                className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-green-400/40" />
+              {mode !== 'magic' && (
+                <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required
+                  className="w-full bg-white/[0.05] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-green-400/40" />
+              )}
+              {error && <p className="text-red-400 text-xs">{error}</p>}
+              <button type="submit" disabled={loading}
+                className="w-full py-3 bg-green-400 hover:bg-green-300 text-black font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
+                {loading ? 'Loading…' : mode === 'magic' ? 'Send magic link' : mode === 'signup' ? 'Create account' : 'Sign in'}
+              </button>
+            </form>
+            <div className="mt-4 space-y-2 text-center">
+              {mode === 'signin' && (
+                <>
+                  <button onClick={() => { setMode('magic'); setError(null); }} className="block w-full text-xs text-white/30 hover:text-white/60 transition-colors">Sign in with magic link instead</button>
+                  <button onClick={() => { setMode('signup'); setError(null); }} className="block w-full text-xs text-white/30 hover:text-white/60 transition-colors">No account? Sign up</button>
+                </>
+              )}
+              {mode === 'signup' && <button onClick={() => { setMode('signin'); setError(null); }} className="block w-full text-xs text-white/30 hover:text-white/60 transition-colors">Already have an account? Sign in</button>}
+              {mode === 'magic' && <button onClick={() => { setMode('signin'); setError(null); }} className="block w-full text-xs text-white/30 hover:text-white/60 transition-colors">Use password instead</button>}
+            </div>
+            <button onClick={onClose} className="mt-5 w-full text-center text-xs text-white/20 hover:text-white/40 transition-colors">Not now</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Upgrade Modal ────────────────────────────────────────────────────────────
 function UpgradeModal({ onClose }) {
   const stripeLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK;
   return (
@@ -115,12 +181,13 @@ function UpgradeModal({ onClose }) {
         <p className="text-white/35 text-sm mb-8">Upgrade to Pro for <span className="text-green-400 font-semibold">unlimited rewrites</span> + generation.</p>
         <div className="space-y-3">
           {stripeLink && (
-            <a href={stripeLink} target="_blank" rel="noopener noreferrer" className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors">
-              Upgrade to Pro &mdash; $19/month
+            <a href={stripeLink} target="_blank" rel="noopener noreferrer"
+              className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors">
+              Upgrade to Pro — $19/month
             </a>
           )}
           <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">
-            See what&apos;s included &rarr;
+            See what&apos;s included →
           </Link>
         </div>
         <button onClick={onClose} className="mt-5 text-sm text-white/25 hover:text-white/50 transition-colors">Not now</button>
@@ -129,37 +196,77 @@ function UpgradeModal({ onClose }) {
   );
 }
 
-// âââ Main Page ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Improve() {
+  const { session, authLoading, authEnabled } = useAuth();
+
   const [platform, setPlatform] = useState('TikTok');
   const [niche, setNiche] = useState('Finance');
   const [hook, setHook] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
-  const [usageCount, setUsageCount] = useState(0);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [bestCopied, setBestCopied] = useState(false);
 
-  useEffect(() => { setUsageCount(getUsage()); }, []);
+  const [serverUsage, setServerUsage] = useState(null);
+  const pendingImproveRef = useRef(false);
 
-  const remaining = Math.max(0, FREE_LIMIT - usageCount);
+  const fetchServerUsage = async (currentSession) => {
+    const s = currentSession || session;
+    if (!authEnabled || !s) return;
+    try {
+      const res = await fetch('/api/usage?feature=improve', {
+        headers: { Authorization: `Bearer ${s.access_token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setServerUsage(data);
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (!authLoading && session) fetchServerUsage(session);
+  }, [authLoading, session]);
+
+  const remaining = authEnabled
+    ? (serverUsage ? serverUsage.remaining : FREE_LIMIT)
+    : FREE_LIMIT;
 
   const improve = async () => {
-    if (!hook || hook.trim().length < 5) { setError('Paste your hook (at least 5 characters).'); return; }
-    if (usageCount >= FREE_LIMIT) { setShowUpgrade(true); return; }
-    setLoading(true); setError(null); setResults(null); setBestCopied(false);
+    if (!hook || hook.trim().length < 5) {
+      setError('Paste your hook (at least 5 characters).');
+      return;
+    }
+    if (authEnabled && !session) {
+      pendingImproveRef.current = true;
+      setShowAuth(true);
+      return;
+    }
+    if (authEnabled && serverUsage && serverUsage.remaining <= 0) {
+      setShowUpgrade(true);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setResults(null);
+    setBestCopied(false);
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (session) headers['Authorization'] = `Bearer ${session.access_token}`;
       const res = await fetch('/api/improve', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hook: hook.trim(), platform, niche })
+        headers,
+        body: JSON.stringify({ hook: hook.trim(), platform, niche }),
       });
+      if (res.status === 401) { pendingImproveRef.current = true; setShowAuth(true); return; }
+      if (res.status === 402) { setShowUpgrade(true); return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
       setResults(data);
-      const newCount = incrementUsage();
-      setUsageCount(newCount);
+      fetchServerUsage(session);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -167,7 +274,22 @@ export default function Improve() {
     }
   };
 
-  const bestRewrite = results?.rewrites?.reduce((best, r) => r.overallScore > (best?.overallScore ?? 0) ? r : best, null);
+  const handleAuthSuccess = async (newSession) => {
+    await fetchServerUsage(newSession);
+    if (pendingImproveRef.current) {
+      pendingImproveRef.current = false;
+      setTimeout(() => improve(), 300);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (supabase) await supabase.auth.signOut();
+  };
+
+  const bestRewrite = results?.rewrites?.reduce(
+    (best, r) => r.overallScore > (best?.overallScore ?? 0) ? r : best,
+    null
+  );
 
   return (
     <>
@@ -178,7 +300,6 @@ export default function Improve() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="min-h-screen bg-black text-white">
-        {/* Nav */}
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">HookLab</Link>
@@ -189,8 +310,15 @@ export default function Improve() {
             <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
             <Link href="/blueprints" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
             <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
+            {authEnabled && (
+              session ? (
+                <button onClick={handleSignOut} className="text-xs font-mono text-white/30 hover:text-white/60 transition-colors">Sign out</button>
+              ) : (
+                <button onClick={() => setShowAuth(true)} className="text-xs font-mono text-white/50 hover:text-white transition-colors border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-full">Sign in</button>
+              )
+            )}
             {remaining === 0 ? (
-              <button onClick={() => setShowUpgrade(true)} className="text-xs font-mono text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors">Upgrade &rarr;</button>
+              <button onClick={() => setShowUpgrade(true)} className="text-xs font-mono text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors">Upgrade →</button>
             ) : (
               <span className="hidden sm:inline text-xs font-mono text-white/30">{remaining} free left</span>
             )}
@@ -198,33 +326,31 @@ export default function Improve() {
         </nav>
 
         <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 pb-20">
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-black mb-1">Rewrite &amp; Improve</h1>
-            <p className="text-white/40 text-sm">Paste your draft hook. Get your score, your main weakness, and 3 stronger rewrites &mdash; each targeting a different psychological angle.</p>
+            <p className="text-white/40 text-sm">Paste your draft hook. Get your score, your main weakness, and 3 stronger rewrites — each targeting a different psychological angle.</p>
           </div>
 
-          {/* Platform */}
           <div className="mb-7">
             <p className="text-xs font-mono tracking-widest text-white/25 mb-3">PLATFORM</p>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {PLATFORMS.map(p => (
-                <button key={p} onClick={() => setPlatform(p)} className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${platform === p ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>{p}</button>
+                <button key={p} onClick={() => setPlatform(p)}
+                  className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${platform === p ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>{p}</button>
               ))}
             </div>
           </div>
 
-          {/* Niche */}
           <div className="mb-8">
             <p className="text-xs font-mono tracking-widest text-white/25 mb-3">NICHE</p>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide flex-wrap">
               {NICHES.map(n => (
-                <button key={n} onClick={() => setNiche(n)} className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${niche === n ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>{n}</button>
+                <button key={n} onClick={() => setNiche(n)}
+                  className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${niche === n ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>{n}</button>
               ))}
             </div>
           </div>
 
-          {/* Hook input */}
           <div className="mb-8">
             <p className="text-xs font-mono tracking-widest text-white/25 mb-3">YOUR DRAFT HOOK</p>
             <textarea
@@ -238,28 +364,29 @@ export default function Improve() {
             {hook.length > 0 && <span className={`text-xs font-mono mt-1 block text-right ${hook.length > 400 ? 'text-yellow-400' : 'text-white/20'}`}>{hook.length}/500</span>}
           </div>
 
-          {/* Error */}
           {error && <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{error}</div>}
 
-          {/* Button */}
           <button
             onClick={improve}
             disabled={loading}
-            className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${loading ? 'bg-green-400/40 text-black/50 cursor-not-allowed' : remaining === 0 ? 'bg-white/5 border border-white/10 text-white/40 cursor-not-allowed' : 'bg-green-400 hover:bg-green-300 text-black active:scale-[0.99]'}`}
+            className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${
+              loading ? 'bg-green-400/40 text-black/50 cursor-not-allowed'
+              : remaining === 0 ? 'bg-white/5 border border-white/10 text-white/40 cursor-not-allowed'
+              : 'bg-green-400 hover:bg-green-300 text-black active:scale-[0.99]'
+            }`}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2.5">
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
                 Rewriting your hook...
               </span>
-            ) : remaining === 0 ? '&#128274; Upgrade to improve more' : '✍ Improve My Hook'}
+            ) : remaining === 0 ? '🔒 Upgrade to improve more' : '✍ Improve My Hook'}
           </button>
-          {usageCount === 0 && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free rewrites per month &middot; No signup needed</p>}
 
-          {/* Results */}
+          {!session && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free rewrites per month · <button onClick={() => setShowAuth(true)} className="underline hover:text-white/40 transition-colors">Sign in</button> to track usage</p>}
+
           {results && !loading && (
             <div className="mt-14 space-y-6">
-              {/* Original score */}
               <div className="border border-white/10 bg-white/[0.025] rounded-2xl p-5">
                 <p className="text-xs font-mono text-white/30 tracking-widest mb-4">YOUR ORIGINAL</p>
                 <div className="flex items-start justify-between gap-3 mb-4">
@@ -284,7 +411,6 @@ export default function Improve() {
                 )}
               </div>
 
-              {/* Best rewrite banner */}
               {bestRewrite && (
                 <div className="border border-green-400/30 bg-gradient-to-b from-green-400/10 to-green-400/[0.04] rounded-2xl p-6 text-center">
                   <p className="text-xs font-mono text-green-400 tracking-widest mb-3">BEST REWRITE</p>
@@ -305,7 +431,6 @@ export default function Improve() {
                 </div>
               )}
 
-              {/* All 3 rewrites */}
               <div>
                 <p className="text-xs font-mono text-white/25 tracking-widest mb-4">ALL 3 REWRITES</p>
                 <div className="space-y-4">
@@ -313,16 +438,17 @@ export default function Improve() {
                 </div>
               </div>
 
-              {/* CTA */}
               <div className="border border-white/10 rounded-2xl p-6 text-center">
                 <p className="text-white/40 text-sm mb-3">Want to generate hooks from scratch?</p>
-                <Link href="/generate" className="inline-block px-6 py-3 bg-green-400 hover:bg-green-300 text-black font-bold rounded-xl text-sm transition-all">Try the Generator &rarr;</Link>
+                <Link href="/generate" className="inline-block px-6 py-3 bg-green-400 hover:bg-green-300 text-black font-bold rounded-xl text-sm transition-all">Try the Generator →</Link>
               </div>
             </div>
           )}
         </main>
       </div>
+
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+      {showAuth && <AuthModal onClose={() => { setShowAuth(false); pendingImproveRef.current = false; }} onSuccess={handleAuthSuccess} />}
     </>
   );
-}
+  }
