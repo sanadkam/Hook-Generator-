@@ -298,7 +298,7 @@ export default function Generate() {
   return (
     <>
       <Head>
-        <title>Generate Hooks — HookScore</title>
+        <title>Generate Hooks — HookLab</title>
         <meta name="description" content="Generate 3 AI-scored viral hooks from your content in seconds." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -309,7 +309,7 @@ export default function Generate() {
         {/* Nav */}
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">HookScore</Link>
+            <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">HookLab</Link>
             <span className="hidden sm:inline text-xs font-mono text-white/25 border border-white/10 px-2 py-0.5 rounded">GENERATOR</span>
           </div>
           <div className="flex items-center gap-3">
