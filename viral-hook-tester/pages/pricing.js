@@ -4,144 +4,200 @@ import Link from 'next/link';
 const PLANS = [
   {
     name: 'Free',
-    price: '$0',
+    price: '&#8364;0',
     period: '',
-    desc: 'Try everything. No signup needed.',
+    description: 'Try it out, no signup needed',
+    features: [
+      '3 Hook Generations / month',
+      '3 Polish uses / month',
+      'Blueprints always free',
+      'All platforms supported',
+    ],
     cta: 'Start free',
     ctaHref: '/generate',
     highlight: false,
-    features: [
-      '3 Generate uses/month',
-      '3 Polish uses/month',
-      'Blueprints always free',
-      'All 6 platforms',
-      'No credit card',
-    ],
   },
   {
-    name: 'Creator',
-    price: '$7',
+    name: 'Starter',
+    price: '&#8364;6',
     period: '/mo',
-    desc: 'For creators who post consistently.',
-    cta: 'Get Creator',
-    ctaHref: '/checkout?plan=creator',
-    highlight: false,
+    description: 'Perfect for solo creators',
     features: [
-      '30 Generate uses/month',
-      '30 Polish uses/month',
+      '30 Hook Generations / month',
+      '30 Polish uses / month',
       'Blueprints always free',
-      'All 6 platforms',
-      'Email support',
+      'All platforms supported',
+      'Priority support',
     ],
+    cta: 'Get Starter',
+    ctaHref: '/generate',
+    highlight: false,
   },
   {
     name: 'Pro',
-    price: '$15',
+    price: '&#8364;12',
     period: '/mo',
-    desc: 'Unlimited for serious creators.',
-    cta: 'Get Pro',
-    ctaHref: '/checkout?plan=pro',
-    highlight: true,
+    description: 'For serious content creators',
     features: [
-      'Unlimited Generate',
-      'Unlimited Polish',
+      'Unlimited Hook Generations',
+      'Unlimited Polish uses',
       'Blueprints always free',
-      'All 6 platforms',
+      'All platforms supported',
       'Priority support',
-      'Early access to new tools',
+      'Early access to new features',
     ],
+    cta: 'Get Pro',
+    ctaHref: '/generate',
+    highlight: true,
+  },
+  {
+    name: 'Agency',
+    price: '&#8364;20.99',
+    period: '/mo',
+    description: 'For teams and agencies',
+    features: [
+      'Unlimited Hook Generations',
+      'Unlimited Polish uses',
+      'Blueprints always free',
+      'All platforms supported',
+      'Priority support',
+      'Early access to new features',
+      'Multiple team members',
+      'Dedicated account manager',
+    ],
+    cta: 'Get Agency',
+    ctaHref: '/generate',
+    highlight: false,
   },
 ];
 
-export default function PricingPage() {
+const FAQS = [
+  {
+    q: 'Can I cancel anytime?',
+    a: 'Yes, cancel anytime with no questions asked. Your plan continues until the end of the billing period.',
+  },
+  {
+    q: 'Do limits reset monthly?',
+    a: 'Yes. Free, Starter, and Pro limits reset on the 1st of each month.',
+  },
+  {
+    q: 'What counts as a generation?',
+    a: 'Each time you generate hooks for a piece of content counts as one use. Each Polish run is counted separately.',
+  },
+  {
+    q: 'Are Blueprints always free?',
+    a: 'Yes! The Blueprints library of hook frameworks and skeleton templates is completely free on every plan.',
+  },
+];
+
+export default function Pricing() {
   return (
-    <>
+    <div className="min-h-screen bg-black text-white">
       <Head>
         <title>Pricing | HookScore</title>
-        <meta name="description" content="Free to start. Upgrade when you need more. Simple pricing for creators." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="Simple, transparent pricing for HookScore." />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="min-h-screen bg-black text-white">
-        <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
-          <Link href="/" className="text-lg font-black tracking-tight">HookScore</Link>
-          <div className="hidden sm:flex items-center gap-6">
-            <Link href="/generate" className="text-sm text-white/40 hover:text-white transition-colors">Generate</Link>
-            <Link href="/polish" className="text-sm text-white/40 hover:text-white transition-colors">Polish</Link>
-            <Link href="/blueprints" className="text-sm text-white/40 hover:text-white transition-colors">Blueprints</Link>
-            <Link href="/pricing" className="text-sm font-semibold text-white transition-colors">Pricing</Link>
-            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">Try free &rarr;</Link>
+
+      {/* Nav */}
+      <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">
+            HookScore
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/generate"   className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Generate</Link>
+            <Link href="/polish"     className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
+            <Link href="/blueprints" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
+            <Link href="/pricing"    className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
+            <Link href="/generate"   className="ml-2 px-3 py-1.5 bg-green-500 hover:bg-green-400 text-black text-sm font-semibold rounded-lg transition-colors">Try free &#8594;</Link>
           </div>
-          <div className="flex sm:hidden items-center gap-3">
-            <Link href="/pricing" className="text-sm font-semibold text-white">Pricing</Link>
-            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">Try free &rarr;</Link>
-          </div>
-        </nav>
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-16 pb-24">
-          <div className="text-center mb-14">
-            <p className="text-xs font-mono tracking-widest text-green-400/70 mb-3">PRICING</p>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">Simple, honest pricing</h1>
-            <p className="text-white/40 text-base sm:text-lg max-w-md mx-auto">Start free, no card needed. Upgrade when you want more volume.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-16">
-            {PLANS.map((plan) => (
-              <div key={plan.name} className={`relative rounded-2xl p-7 flex flex-col ${plan.highlight ? 'bg-green-400/10 border-2 border-green-400' : 'bg-white/[0.03] border border-white/10'}`}>
-                {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-400 text-black text-xs font-black px-3 py-0.5 rounded-full tracking-wide">MOST POPULAR</div>
-                )}
-                <div className="mb-6">
-                  <p className="text-xs font-mono text-white/30 tracking-widest mb-2">{plan.name.toUpperCase()}</p>
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-4xl font-black">{plan.price}</span>
-                    {plan.period && <span className="text-white/30 text-sm">{plan.period}</span>}
-                  </div>
-                  <p className="text-white/40 text-sm">{plan.desc}</p>
+        </div>
+      </nav>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
+
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">
+            Simple, transparent pricing
+          </h1>
+          <p className="text-white/50 text-lg max-w-xl mx-auto">
+            Start free. Upgrade when you need more. No hidden fees.
+          </p>
+        </div>
+
+        {/* Plans grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">
+          {PLANS.map(plan => (
+            <div
+              key={plan.name}
+              className={`relative rounded-2xl border p-6 flex flex-col ${
+                plan.highlight
+                  ? 'bg-white/[0.07] border-green-500/60 shadow-lg shadow-green-500/10'
+                  : 'bg-white/[0.03] border-white/[0.08]'
+              }`}
+            >
+              {plan.highlight && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-green-500 text-black text-xs font-bold rounded-full tracking-wide uppercase">
+                  Most popular
                 </div>
-                <ul className="flex-1 space-y-2.5 mb-7">
-                  {plan.features.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-white/60">
-                      <span className="text-green-400 mt-0.5 flex-shrink-0">&#10003;</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link href={plan.ctaHref} className={`block text-center py-3 rounded-xl text-sm font-bold transition-all ${plan.highlight ? 'bg-green-400 hover:bg-green-300 text-black' : 'bg-white/8 hover:bg-white/15 text-white border border-white/10'}`}>
-                  {plan.cta}
-                </Link>
+              )}
+
+              <div className="mb-5">
+                <p className="text-sm text-white/40 font-medium uppercase tracking-widest mb-1">{plan.name}</p>
+                <div className="flex items-end gap-1 mb-2">
+                  <span className="text-4xl font-black" dangerouslySetInnerHTML={{ __html: plan.price }} />
+                  {plan.period && <span className="text-white/40 text-sm mb-1">{plan.period}</span>}
+                </div>
+                <p className="text-sm text-white/50">{plan.description}</p>
+              </div>
+
+              <ul className="space-y-2 mb-6 flex-1">
+                {plan.features.map(f => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-white/70">
+                    <span className="text-green-400 mt-0.5 shrink-0">&#10003;</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={plan.ctaHref}
+                className={`block text-center py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  plan.highlight
+                    ? 'bg-green-500 hover:bg-green-400 text-black'
+                    : 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]'
+                }`}
+              >
+                {plan.cta}
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {/* FAQ */}
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-2xl font-black text-center mb-10">Frequently asked questions</h2>
+          <div className="space-y-6">
+            {FAQS.map(faq => (
+              <div key={faq.q} className="border-b border-white/[0.07] pb-6">
+                <p className="font-semibold mb-2">{faq.q}</p>
+                <p className="text-white/50 text-sm leading-relaxed">{faq.a}</p>
               </div>
             ))}
           </div>
-          <div className="max-w-xl mx-auto">
-            <p className="text-xs font-mono tracking-widest text-white/25 text-center mb-8">FAQ</p>
-            <div className="space-y-4">
-              {[
-                { q: 'Do I need an account for the free tier?', a: 'No. 3 free uses per tool per month, zero signup required.' },
-                { q: 'When does free usage reset?', a: 'At the start of each calendar month, automatically.' },
-                { q: 'Is Blueprints always free?', a: 'Yes. Blueprints is free on every plan, forever.' },
-                { q: 'Can I cancel anytime?', a: 'Yes. Cancel anytime, keep access until end of billing period.' },
-              ].map((item, i) => (
-                <div key={i} className="border border-white/8 rounded-xl p-5">
-                  <p className="font-semibold text-sm mb-1.5">{item.q}</p>
-                  <p className="text-white/40 text-sm leading-relaxed">{item.a}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="text-center mt-16 border border-white/8 rounded-2xl p-10 bg-white/[0.02]">
-            <h2 className="text-2xl sm:text-3xl font-black mb-3">Start for free today</h2>
-            <p className="text-white/40 text-sm mb-7">No account. No card. Just hooks.</p>
-            <Link href="/generate" className="inline-block px-10 py-4 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-base transition-all active:scale-[0.98]">&#9889; Try it free</Link>
-          </div>
-        </main>
-        <footer className="border-t border-white/[0.06] px-6 py-8 text-center">
-          <div className="flex items-center justify-center gap-5 mb-4 text-sm text-white/25">
-            <Link href="/generate" className="hover:text-white/50 transition-colors">Generate</Link>
-            <Link href="/polish" className="hover:text-white/50 transition-colors">Polish</Link>
-            <Link href="/blueprints" className="hover:text-white/50 transition-colors">Blueprints</Link>
-            <Link href="/pricing" className="hover:text-white/50 transition-colors">Pricing</Link>
-          </div>
-          <p className="text-white/20 text-sm">&copy; {new Date().getFullYear()} HookScore</p>
-        </footer>
-      </div>
-    </>
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="text-center mt-20">
+          <p className="text-white/40 text-sm mb-4">No credit card required to start</p>
+          <Link href="/generate" className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl transition-colors">
+            Start generating free &#8594;
+          </Link>
+        </div>
+
+      </main>
+    </div>
   );
 }
