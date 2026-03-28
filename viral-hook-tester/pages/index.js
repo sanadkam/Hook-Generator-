@@ -5,13 +5,13 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>HookScore - AI Hook Tools for Creators</title>
+        <title>HookLab - AI Hook Tools for Creators</title>
         <meta name="description" content="Generate scroll-stopping hooks, polish your drafts, and study proven hook blueprints. Free to start, no signup." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="min-h-screen bg-black text-white">
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
-          <span className="text-lg font-black tracking-tight">HookScore</span>
+          <span className="text-lg font-black tracking-tight">HookLab</span>
           <div className="hidden sm:flex items-center gap-6">
             <Link href="/generate" className="text-sm text-white/40 hover:text-white transition-colors">Generate</Link>
             <Link href="/polish" className="text-sm text-white/40 hover:text-white transition-colors">Polish</Link>
@@ -97,7 +97,7 @@ export default function Home() {
             <Link href="/blueprints" className="hover:text-white/50 transition-colors">Blueprints</Link>
             <Link href="/pricing" className="hover:text-white/50 transition-colors">Pricing</Link>
           </div>
-          <p className="text-white/20 text-sm">&copy; {new Date().getFullYear()} HookScore</p>
+          <p className="text-white/20 text-sm">&copy; {new Date().getFullYear()} HookLab</p>
         </footer>
       </div>
     </>
