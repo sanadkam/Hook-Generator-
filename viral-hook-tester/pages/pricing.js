@@ -1,200 +1,225 @@
 import Head from 'next/head';
 import Link from 'next/link';
 
-const features = {
-  free: [
-    '3 free hook generations — no signup',
-    '3 hooks per generation',
-    'All 5 platforms (TikTok, YouTube, Instagram, Twitter/X, LinkedIn)',
-    'All 10 niches',
-    '5-dimension score breakdown',
-    'Why it works + delivery tip per hook',
-    'Generation history saved locally',
-  ],
-  pro: [
-    'Unlimited hook generations',
-    '3 hooks per generation',
-    'All 5 platforms & 10 niches',
-    '5-dimension score breakdown',
-    'Why it works + delivery tip per hook',
-    'Full generation history',
-    'Priority AI (faster responses)',
-    'Image/screenshot upload',
-    'Early access to new features',
-  ],
-};
+const PLANS = [
+  {
+    name: 'Free',
+    price: '$0',
+    period: '',
+    desc: 'Try all tools with no signup required.',
+    cta: 'Start free',
+    ctaHref: '/generate',
+    highlight: false,
+    features: [
+      '3 uses per tool per month',
+      'Generate, Analyze & Improve hooks',
+      'Swipe File access',
+      'All 6 platforms supported',
+      'No credit card needed',
+    ],
+  },
+  {
+    name: 'Starter',
+    price: '$9',
+    period: '/mo',
+    desc: 'More volume for solo creators.',
+    cta: 'Get Starter',
+    ctaHref: '/checkout?plan=starter',
+    highlight: false,
+    features: [
+      '30 uses per tool per month',
+      'Everything in Free',
+      'Priority AI generation',
+      'Email support',
+    ],
+  },
+  {
+    name: 'Pro',
+    price: '$19',
+    period: '/mo',
+    desc: 'Unlimited for serious creators.',
+    cta: 'Get Pro',
+    ctaHref: '/checkout?plan=pro',
+    highlight: true,
+    features: [
+      'Unlimited uses on all tools',
+      'Everything in Starter',
+      'Faster response times',
+      'Early access to new features',
+      'Priority support',
+    ],
+  },
+  {
+    name: 'Agency',
+    price: '$49',
+    period: '/mo',
+    desc: 'For teams managing multiple creators.',
+    cta: 'Get Agency',
+    ctaHref: '/checkout?plan=agency',
+    highlight: false,
+    features: [
+      'Unlimited uses on all tools',
+      'Up to 5 team seats',
+      'Everything in Pro',
+      'Bulk hook generation',
+      'Dedicated support',
+    ],
+  },
+];
 
-function Check({ green }) {
-  return (
-    <svg
-      className={`w-4 h-4 shrink-0 mt-0.5 ${green ? 'text-green-400' : 'text-white/30'}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.5}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  );
-}
-
-export default function Pricing() {
-  const stripeLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK;
-
+export default function PricingPage() {
   return (
     <>
       <Head>
-        <title>Pricing — HookScore</title>
-        <meta name="description" content="Free and Pro plans for HookScore. Unlimited AI hook analysis for content creators." />
+        <title>Pricing | HookScore</title>
+        <meta name="description" content="Free to start. Upgrade when you need more. HookScore plans for solo creators, pros, and agencies." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-
       <div className="min-h-screen bg-black text-white">
+
         {/* Nav */}
-        <nav className="border-b border-white/[0.07] px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">
-            HookScore
-          </Link>
-          <Link
-            href="/"
-            className="text-sm text-white/40 hover:text-white transition-colors"
-          >
-            ← Back to analyzer
-          </Link>
+        <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
+          <Link href="/" className="text-lg font-black tracking-tight">HookScore</Link>
+          <div className="hidden sm:flex items-center gap-5">
+            <Link href="/generate" className="text-sm text-white/40 hover:text-white transition-colors">Generate</Link>
+            <Link href="/analyze" className="text-sm text-white/40 hover:text-white transition-colors">Analyze</Link>
+            <Link href="/improve" className="text-sm text-white/40 hover:text-white transition-colors">Improve</Link>
+            <Link href="/swipe" className="text-sm text-white/40 hover:text-white transition-colors">Swipe File</Link>
+            <Link href="/pricing" className="text-sm font-semibold text-white transition-colors">Pricing</Link>
+            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">
+              Try free &rarr;
+            </Link>
+          </div>
+          <div className="flex sm:hidden items-center gap-3">
+            <Link href="/pricing" className="text-sm text-white transition-colors font-semibold">Pricing</Link>
+            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">
+              Try free &rarr;
+            </Link>
+          </div>
         </nav>
 
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-          {/* Hero */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl font-black mb-4">Simple pricing</h1>
-            <p className="text-white/40 text-lg max-w-md mx-auto">
-              3 free generations, no card needed. Upgrade for unlimited when you're ready.
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-24">
+
+          {/* Header */}
+          <div className="text-center mb-12">
+            <p className="text-xs font-mono tracking-widest text-green-400/70 mb-3">PRICING</p>
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">
+              Simple, transparent pricing
+            </h1>
+            <p className="text-white/40 text-base sm:text-lg max-w-md mx-auto">
+              Start free &mdash; no signup needed. Upgrade when you&apos;re ready for more.
             </p>
           </div>
 
-          {/* Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-
-            {/* Free */}
-            <div className="border border-white/10 rounded-3xl p-7 flex flex-col">
-              <div className="mb-6">
-                <p className="text-xs font-mono text-white/40 tracking-widest mb-2">FREE</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black">$0</span>
-                  <span className="text-white/30 text-sm">/month</span>
-                </div>
-                <p className="text-white/40 text-sm mt-2">3 free uses · No credit card</p>
-              </div>
-
-              <ul className="space-y-3 flex-1 mb-8">
-                {features.free.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-white/60">
-                    <Check green />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href="/"
-                className="block w-full py-3.5 text-center border border-white/15 hover:border-white/30 text-white/60 hover:text-white rounded-2xl text-sm font-semibold transition-all"
+          {/* Plans grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+            {PLANS.map((plan) => (
+              <div
+                key={plan.name}
+                className={`relative rounded-2xl p-6 flex flex-col ${
+                  plan.highlight
+                    ? 'bg-green-400/10 border-2 border-green-400'
+                    : 'bg-white/[0.03] border border-white/10'
+                }`}
               >
-                Start for free
-              </Link>
-            </div>
-
-            {/* Pro */}
-            <div className="border border-green-400/40 rounded-3xl p-7 flex flex-col bg-green-400/5 relative overflow-hidden">
-              {/* Glow */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-green-400/10 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <p className="text-xs font-mono text-green-400 tracking-widest">PRO</p>
-                  <span className="text-xs font-mono text-black bg-green-400 px-2 py-0.5 rounded-full">
-                    POPULAR
-                  </span>
+                {plan.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-400 text-black text-xs font-black px-3 py-0.5 rounded-full tracking-wide">
+                    MOST POPULAR
+                  </div>
+                )}
+                <div className="mb-5">
+                  <p className="text-xs font-mono text-white/30 tracking-widest mb-1">{plan.name.toUpperCase()}</p>
+                  <div className="flex items-baseline gap-1 mb-1">
+                    <span className="text-3xl font-black">{plan.price}</span>
+                    {plan.period && <span className="text-white/30 text-sm">{plan.period}</span>}
+                  </div>
+                  <p className="text-white/40 text-xs leading-relaxed">{plan.desc}</p>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black">€4.99</span>
-                  <span className="text-white/30 text-sm">/month</span>
-                </div>
-                <p className="text-white/40 text-sm mt-2">For serious content creators</p>
-              </div>
-
-              <ul className="space-y-3 flex-1 mb-8">
-                {features.pro.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-white/80">
-                    <Check green />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              {stripeLink ? (
-                <a
-                  href={stripeLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full py-3.5 text-center bg-green-400 hover:bg-green-300 text-black rounded-2xl text-sm font-bold transition-colors"
+                <ul className="flex-1 space-y-2 mb-6">
+                  {plan.features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-white/60">
+                      <span className="text-green-400 mt-0.5 flex-shrink-0">&#10003;</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={plan.ctaHref}
+                  className={`block text-center py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    plan.highlight
+                      ? 'bg-green-400 hover:bg-green-300 text-black'
+                      : 'bg-white/8 hover:bg-white/15 text-white border border-white/10'
+                  }`}
                 >
-                  Get Pro — €4.99/month
-                </a>
-              ) : (
-                <div className="block w-full py-3.5 text-center bg-green-400/20 text-green-400/60 border border-green-400/20 rounded-2xl text-sm font-bold cursor-not-allowed">
-                  Coming soon
-                </div>
-              )}
-            </div>
+                  {plan.cta}
+                </Link>
+              </div>
+            ))}
           </div>
 
           {/* FAQ */}
-          <div className="mt-20 max-w-xl mx-auto">
-            <h2 className="text-2xl font-bold text-center mb-10">FAQ</h2>
-            <div className="space-y-8">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-xs font-mono tracking-widest text-white/25 text-center mb-8">FAQ</p>
+            <div className="space-y-5">
               {[
                 {
-                  q: 'How does the hook scoring work?',
-                  a: "Each hook is analyzed by Claude (Anthropic's AI) against 5 dimensions: Curiosity Gap, Clarity, Emotional Trigger, Platform Fit, and Niche Relevance. Scores reflect real engagement psychology, not random numbers.",
+                  q: 'Do I need to sign up for the free tier?',
+                  a: 'No. You get 3 free uses per tool per month with no account required. Just visit any tool and start.',
                 },
                 {
-                  q: 'Does it use real social media data?',
-                  a: "The AI is trained on patterns from millions of viral posts. It doesn't pull live data per analysis, but its scoring is based on deep knowledge of what drives engagement on each platform.",
+                  q: 'When does my free usage reset?',
+                  a: 'Free usage resets at the start of each calendar month, automatically.',
                 },
                 {
-                  q: 'Can I cancel my Pro subscription?',
-                  a: 'Yes, cancel anytime from your Stripe billing portal. You keep Pro access until the end of your billing period.',
+                  q: 'Which tools count toward the free limit?',
+                  a: 'Generate, Analyze, and Improve each have their own separate 3-use monthly limit. Swipe File is always free.',
+                },
+                {
+                  q: 'Can I cancel anytime?',
+                  a: 'Yes, you can cancel at any time. You keep access until the end of your billing period.',
                 },
                 {
                   q: 'What platforms are supported?',
-                  a: 'TikTok, YouTube, Instagram, Twitter/X, and LinkedIn — each with platform-specific scoring calibrated to that platform\'s audience behavior.',
+                  a: 'TikTok, Instagram Reels, YouTube Shorts, LinkedIn, Twitter/X, and Facebook &mdash; on all plans.',
                 },
-                {
-                  q: 'Is my data stored anywhere?',
-                  a: 'Your hook analyses are saved locally in your browser only (localStorage). We don\'t store your hooks on any server.',
-                },
-              ].map(({ q, a }) => (
-                <div key={q} className="border-b border-white/[0.07] pb-8">
-                  <h3 className="font-semibold text-white mb-2">{q}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{a}</p>
+              ].map((item, i) => (
+                <div key={i} className="border border-white/8 rounded-xl p-5">
+                  <p className="font-semibold text-sm mb-2">{item.q}</p>
+                  <p className="text-white/40 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: item.a }} />
                 </div>
               ))}
             </div>
           </div>
 
           {/* Bottom CTA */}
-          <div className="mt-20 text-center">
-            <p className="text-white/30 text-sm mb-4">
-              Questions? Reach out at{' '}
-              <a href="mailto:hello@hookscore.app" className="text-white/50 hover:text-white underline transition-colors">
-                hello@hookscore.app
-              </a>
+          <div className="text-center mt-16 border border-white/8 rounded-2xl p-10 bg-white/[0.02]">
+            <h2 className="text-2xl sm:text-3xl font-black mb-3">Ready to stop guessing?</h2>
+            <p className="text-white/40 text-sm mb-7 max-w-sm mx-auto">
+              3 free uses per tool per month. No signup, no credit card.
             </p>
-            <Link href="/" className="text-sm text-white/40 hover:text-white transition-colors">
-              ← Back to hook analyzer
+            <Link
+              href="/generate"
+              className="inline-block px-10 py-4 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-base transition-all active:scale-[0.98]"
+            >
+              &#9889; Try it free
             </Link>
           </div>
         </main>
+
+        {/* Footer */}
+        <footer className="border-t border-white/[0.06] px-6 py-8 text-center">
+          <div className="flex items-center justify-center gap-5 mb-4 text-sm text-white/25">
+            <Link href="/generate" className="hover:text-white/50 transition-colors">Generate</Link>
+            <Link href="/analyze" className="hover:text-white/50 transition-colors">Analyze</Link>
+            <Link href="/improve" className="hover:text-white/50 transition-colors">Improve</Link>
+            <Link href="/swipe" className="hover:text-white/50 transition-colors">Swipe File</Link>
+            <Link href="/pricing" className="hover:text-white/50 transition-colors">Pricing</Link>
+          </div>
+          <p className="text-white/20 text-sm">
+            &copy; {new Date().getFullYear()} HookScore
+          </p>
+        </footer>
+
       </div>
     </>
   );
