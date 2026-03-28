@@ -84,7 +84,7 @@ function RewriteCard({ rewrite, rank, delay = 0 }) {
         </div>
       </div>
       <button onClick={copy} className={`w-full py-2.5 rounded-xl text-sm font-semibold mb-4 transition-all active:scale-[0.98] ${copied ? 'bg-green-400/20 text-green-400 border border-green-400/30' : 'bg-white/8 hover:bg-white/12 text-white/70 hover:text-white border border-white/10'}`}>
-        {copied ? '&#10003; Copied!' : 'Copy hook'}
+        {copied ? '✓ Copied!' : 'Copy hook'}
       </button>
       <div className="space-y-2.5 mb-4">
         <ScoreBar label="Curiosity Gap" score={rewrite.scores.curiosityGap} delay={60} />
@@ -252,7 +252,7 @@ export default function Improve() {
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
                 Rewriting your hook...
               </span>
-            ) : remaining === 0 ? '&#128274; Upgrade to improve more' : '&#9997; Improve My Hook'}
+            ) : remaining === 0 ? '&#128274; Upgrade to improve more' : '✍ Improve My Hook'}
           </button>
           {usageCount === 0 && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free rewrites per month &middot; No signup needed</p>}
 
@@ -300,7 +300,7 @@ export default function Improve() {
                     onClick={() => navigator.clipboard.writeText(bestRewrite.text).then(() => { setBestCopied(true); setTimeout(() => setBestCopied(false), 2000); })}
                     className={`px-6 py-2.5 text-sm font-bold rounded-xl transition-all active:scale-95 ${bestCopied ? 'bg-green-400/20 text-green-400 border border-green-400/40' : 'bg-green-400 hover:bg-green-300 text-black'}`}
                   >
-                    {bestCopied ? '&#10003; Copied!' : 'Copy best rewrite'}
+                    {bestCopied ? '✓ Copied!' : 'Copy best rewrite'}
                   </button>
                 </div>
               )}
