@@ -1,8 +1,10 @@
 import '../styles/globals.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
+import { supabase } from '../lib/supabase';
+import { AuthContext } from '../lib/AuthContext';
 
 if (typeof window !== 'undefined') {
   posthog.init('phc_7X74oAjFi2IWdNSncip4ut8ry6DcXKTruiwHP626iZG', {
@@ -14,7 +16,39 @@ if (typeof window !== 'undefined') {
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const authEnabled = !!supabase;
 
+  useEffect(() => {
+    if (!supabase) {
+      setAuthLoading(false);
+      return;
+    }
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+      if (session?.user) {
+        posthog.identify(session.user.id, { email: session.user.email });
+      }
+    });
+
+    // Listen for auth changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      if (session?.user) {
+        posthog.identify(session.user.id, { email: session.user.email });
+      } else if (event === 'SIGNED_OUT') {
+        posthog.reset();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Track page views on route change
   useEffect(() => {
     const handleRouteChange = () => posthog.capture('$pageview');
     router.events.on('routeChangeComplete', handleRouteChange);
@@ -24,8 +58,10 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <PostHogProvider client={posthog}>
-      <Component {...pageProps} />
-    </PostHogProvider>
+    <AuthContext.Provider value={{ session, authLoading, authEnabled }}>
+      <PostHogProvider client={posthog}>
+        <Component {...pageProps} />
+      </PostHogProvider>
+    </AuthContext.Provider>
   );
 }
