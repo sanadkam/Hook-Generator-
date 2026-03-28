@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
-const FREE_LIMIT = 5;
+const FREE_LIMIT = 3;
 const STORAGE_KEY = 'hookscore_analyze_v1';
 
 function getUsageCount() {
   if (typeof window === 'undefined') return 0;
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const today = new Date().toDateString();
-    if (data.date !== today) return 0;
+    const month = new Date().toISOString().slice(0, 7);
+    if (data.month !== month) return 0;
     return data.count || 0;
   } catch { return 0; }
 }
@@ -18,10 +18,10 @@ function getUsageCount() {
 function incrementUsage() {
   if (typeof window === 'undefined') return;
   try {
-    const today = new Date().toDateString();
+    const month = new Date().toISOString().slice(0, 7);
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const count = (data.date === today ? data.count || 0 : 0) + 1;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, count }));
+    const count = (data.month === month ? data.count || 0 : 0) + 1;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ month, count }));
   } catch {}
 }
 
@@ -202,7 +202,7 @@ export default function AnalyzePage() {
             <p style={{ color: '#94a3b8', fontSize: 16 }}>Compare up to 3 hooks and see which one wins &mdash; scored by AI.</p>
             {!isPro && (
               <p style={{ marginTop: 12, fontSize: 13, color: remaining <= 1 ? '#ef4444' : '#64748b' }}>
-                {remaining} free {remaining === 1 ? 'analysis' : 'analyses'} remaining today
+                {remaining} free {remaining === 1 ? 'analysis' : 'analyses'} remaining this month
               </p>
             )}
           </div>
