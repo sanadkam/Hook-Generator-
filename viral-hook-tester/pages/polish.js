@@ -186,7 +186,7 @@ export default function Improve() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/generate" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Generate</Link>
-            <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Analyze</Link>
+            <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
             <Link href="/blueprints" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
             <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
             {remaining === 0 ? (
