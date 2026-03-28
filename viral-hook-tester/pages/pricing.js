@@ -18,10 +18,10 @@ const PLANS = [
     highlight: false,
   },
   {
-    name: 'Starter',
-    price: '&#8364;6',
+    name: 'Creator',
+    price: '&#8364;5.99',
     period: '/mo',
-    description: 'Perfect for solo creators',
+    description: 'Built for serious creators',
     features: [
       '30 Hook Generations / month',
       '30 Polish uses / month',
@@ -29,13 +29,13 @@ const PLANS = [
       'All platforms supported',
       'Priority support',
     ],
-    cta: 'Get Starter',
+    cta: 'Get Creator',
     ctaHref: '/generate',
     highlight: false,
   },
   {
     name: 'Pro',
-    price: '&#8364;12',
+    price: '&#8364;11.99',
     period: '/mo',
     description: 'For serious content creators',
     features: [
@@ -94,8 +94,8 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-black text-white">
       <Head>
-        <title>Pricing | HookScore</title>
-        <meta name="description" content="Simple, transparent pricing for HookScore." />
+        <title>Pricing | HookLab</title>
+        <meta name="description" content="Simple, transparent pricing for HookLab." />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -103,7 +103,7 @@ export default function Pricing() {
       <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">
-            HookScore
+            HookLab
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/generate"   className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Generate</Link>
