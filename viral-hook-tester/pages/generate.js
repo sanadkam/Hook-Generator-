@@ -318,7 +318,6 @@ export default function Generate() {
                 History
               </button>
             )}
-            <Link 
             <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
             <Link href="/blueprints"   className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Swipe</Link>
             <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
