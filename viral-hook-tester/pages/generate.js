@@ -14,13 +14,22 @@ const MAX_FILE_MB    = 8;
 // ─── Storage ──────────────────────────────────────────────────────────────────
 function getUsageData() {
   if (typeof window === 'undefined') return { count: 0 };
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"count":0}'); }
-  catch { return { count: 0 }; }
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const month = new Date().toISOString().slice(0, 7);
+    if (data.month !== month) return { count: 0 };
+    return { count: data.count || 0 };
+  } catch { return { count: 0 }; }
 }
 function incrementUsage() {
-  const count = getUsageData().count + 1;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ count }));
-  return count;
+  if (typeof window === 'undefined') return 0;
+  try {
+    const month = new Date().toISOString().slice(0, 7);
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const count = (data.month === month ? data.count || 0 : 0) + 1;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ month, count }));
+    return count;
+  } catch { return 0; }
 }
 function saveHistory(entry) {
   try {
@@ -199,7 +208,7 @@ function UpgradeModal({ onClose, reason = 'limit' }) {
         <div className="space-y-3">
           {stripeLink && (
             <a href={stripeLink} target="_blank" rel="noopener noreferrer" className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors">
-              Upgrade to Pro — €4.99/month
+              Upgrade to Pro — $19/month
             </a>
           )}
           <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">
@@ -538,7 +547,7 @@ export default function Generate() {
                     <p className="text-white/40 text-sm mb-1">
                       {remaining === 0 ? "You've used all your free generations." : `${remaining} free generation${remaining !== 1 ? 's' : ''} remaining`}
                     </p>
-                    {remaining === 0 && <p className="text-white/25 text-xs mb-4">Go unlimited for €4.99/month</p>}
+                    {remaining === 0 && <p className="text-white/25 text-xs mb-4">Go unlimited for $19/month</p>}
                     <Link href="/pricing" className="inline-block px-6 py-3 bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-xl text-sm text-white/60 hover:text-white transition-all">
                       {remaining === 0 ? 'Upgrade to Pro →' : 'Go unlimited with Pro →'}
                     </Link>
