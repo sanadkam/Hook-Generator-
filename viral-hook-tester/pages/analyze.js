@@ -41,8 +41,15 @@ function ScoreBar({ label, value, color }) {
 
 function HookResultCard({ result, rank }) {
   const rankColors = ['#f59e0b', '#94a3b8', '#cd7c2f'];
-  const rankLabels = ['ð¥ Best Hook', 'ð¥ 2nd Place', 'ð¥ 3rd Place'];
+  const rankLabels = ['#1 Best Hook', '#2 Runner Up', '#3 Third Place'];
+  const rankEmoji = ['Gold', 'Silver', 'Bronze'];
   const scoreColor = result.overallScore >= 7 ? '#22c55e' : result.overallScore >= 5 ? '#f59e0b' : '#ef4444';
+  const scores = result.scores || {};
+  const curiosityGap = scores.curiosityGap != null ? Math.round(scores.curiosityGap / 10) : 0;
+  const emotionalTrigger = scores.emotionalTrigger != null ? Math.round(scores.emotionalTrigger / 10) : 0;
+  const clarity = scores.clarity != null ? Math.round(scores.clarity / 10) : 0;
+  const platformFit = scores.platformFit != null ? Math.round(scores.platformFit / 10) : 0;
+  const nicheRelevance = scores.nicheRelevance != null ? Math.round(scores.nicheRelevance / 10) : 0;
 
   return (
     <div style={{
@@ -51,23 +58,26 @@ function HookResultCard({ result, rank }) {
       borderRadius: 12,
       padding: 20,
       marginBottom: 16,
-      position: 'relative'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: rankColors[rank], textTransform: 'uppercase', letterSpacing: 1 }}>
           {rankLabels[rank]}
         </span>
-        <span style={{ fontSize: 28, fontWeight: 900, color: scoreColor }}>{result.overallScore}<span style={{ fontSize: 14, color: '#475569' }}>/10</span></span>
+        <span style={{ fontSize: 28, fontWeight: 900, color: scoreColor }}>
+          {result.overallScore}<span style={{ fontSize: 14, color: '#475569' }}>/100</span>
+        </span>
       </div>
-      <p style={{ color: '#e2e8f0', fontSize: 15, lineHeight: 1.6, marginBottom: 16, fontStyle: 'italic' }}>"{result.hook}"</p>
-      <ScoreBar label="Curiosity Gap" value={result.scores.curiosityGap} color="#8b5cf6" />
-      <ScoreBar label="Emotional Trigger" value={result.scores.emotionalTrigger} color="#ec4899" />
-      <ScoreBar label="Clarity" value={result.scores.clarity} color="#06b6d4" />
-      <ScoreBar label="Platform Fit" value={result.scores.platformFit} color="#10b981" />
-      <ScoreBar label="Niche Relevance" value={result.scores.nicheRelevance} color="#f59e0b" />
-      {result.feedback && (
+      <p style={{ color: '#e2e8f0', fontSize: 15, lineHeight: 1.6, marginBottom: 16, fontStyle: 'italic' }}>
+        &ldquo;{result.text}&rdquo;
+      </p>
+      <ScoreBar label="Curiosity Gap" value={curiosityGap} color="#8b5cf6" />
+      <ScoreBar label="Emotional Trigger" value={emotionalTrigger} color="#ec4899" />
+      <ScoreBar label="Clarity" value={clarity} color="#06b6d4" />
+      <ScoreBar label="Platform Fit" value={platformFit} color="#10b981" />
+      <ScoreBar label="Niche Relevance" value={nicheRelevance} color="#f59e0b" />
+      {result.verdict && (
         <p style={{ marginTop: 12, fontSize: 13, color: '#64748b', borderTop: '1px solid #1e293b', paddingTop: 12 }}>
-          ð¡ {result.feedback}
+          Verdict: {result.verdict}
         </p>
       )}
     </div>
@@ -81,10 +91,10 @@ function UpgradeModal({ onClose }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
     }}>
       <div style={{ background: '#0f172a', border: '1px solid #8b5cf6', borderRadius: 16, padding: 40, maxWidth: 420, textAlign: 'center' }}>
-        <div style={{ fontSize: 40, marginBottom: 16 }}>ð</div>
+        <div style={{ fontSize: 40, marginBottom: 16 }}>&#128274;</div>
         <h2 style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Free Limit Reached</h2>
         <p style={{ color: '#94a3b8', marginBottom: 24 }}>
-          You've used all {FREE_LIMIT} free analyses today. Upgrade to Pro for unlimited access.
+          You have used all {FREE_LIMIT} free analyses today. Upgrade to Pro for unlimited access.
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <Link href="/pricing" style={{
@@ -110,6 +120,8 @@ export default function AnalyzePage() {
   const [niche, setNiche] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
+  const [winner, setWinner] = useState(null);
+  const [topTip, setTopTip] = useState('');
   const [error, setError] = useState('');
   const [usageCount, setUsageCount] = useState(0);
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -138,6 +150,8 @@ export default function AnalyzePage() {
     setLoading(true);
     setError('');
     setResults(null);
+    setWinner(null);
+    setTopTip('');
 
     try {
       const res = await fetch('/api/analyze', {
@@ -149,9 +163,10 @@ export default function AnalyzePage() {
       if (!res.ok) throw new Error(data.error || 'Analysis failed');
 
       incrementUsage();
-      const newCount = getUsageCount();
-      setUsageCount(newCount);
-      setResults(data.results);
+      setUsageCount(getUsageCount());
+      setResults(data.hooks || []);
+      setWinner(data.winner || null);
+      setTopTip(data.topTip || '');
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -164,13 +179,12 @@ export default function AnalyzePage() {
   return (
     <>
       <Head>
-        <title>Compare & Analyze Hooks | HookScore</title>
+        <title>Compare &amp; Analyze Hooks | HookScore</title>
         <meta name="description" content="Compare up to 3 hooks side by side and find out which one wins." />
       </Head>
       <div style={{ minHeight: '100vh', background: '#020817', color: '#f1f5f9', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
-        {/* Nav */}
         <nav style={{ borderBottom: '1px solid #1e293b', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 900, margin: '0 auto' }}>
-          <Link href="/" style={{ color: '#8b5cf6', fontWeight: 900, fontSize: 20, textDecoration: 'none' }}>â¡ HookScore</Link>
+          <Link href="/" style={{ color: '#8b5cf6', fontWeight: 900, fontSize: 20, textDecoration: 'none' }}>&#9889; HookScore</Link>
           <div style={{ display: 'flex', gap: 24, fontSize: 14 }}>
             <Link href="/generate" style={{ color: '#94a3b8', textDecoration: 'none' }}>Generate</Link>
             <Link href="/analyze" style={{ color: '#f1f5f9', fontWeight: 600, textDecoration: 'none' }}>Analyze</Link>
@@ -181,12 +195,11 @@ export default function AnalyzePage() {
         </nav>
 
         <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px' }}>
-          {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <h1 style={{ fontSize: 36, fontWeight: 900, marginBottom: 12 }}>
               Hook <span style={{ color: '#8b5cf6' }}>Battle Mode</span>
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: 16 }}>Compare up to 3 hooks and see which one wins â scored by AI.</p>
+            <p style={{ color: '#94a3b8', fontSize: 16 }}>Compare up to 3 hooks and see which one wins &mdash; scored by AI.</p>
             {!isPro && (
               <p style={{ marginTop: 12, fontSize: 13, color: remaining <= 1 ? '#ef4444' : '#64748b' }}>
                 {remaining} free {remaining === 1 ? 'analysis' : 'analyses'} remaining today
@@ -194,7 +207,6 @@ export default function AnalyzePage() {
             )}
           </div>
 
-          {/* Input Card */}
           <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 16, padding: 28, marginBottom: 24 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div>
@@ -242,7 +254,7 @@ export default function AnalyzePage() {
               </div>
             ))}
 
-            {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 16 }}>â ï¸ {error}</p>}
+            {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 16 }}>&#9888; {error}</p>}
 
             <button
               onClick={handleAnalyze}
@@ -255,16 +267,23 @@ export default function AnalyzePage() {
                 cursor: loading || filledHooks.length < 2 ? 'not-allowed' : 'pointer', transition: 'all 0.2s'
               }}
             >
-              {loading ? 'â¡ Analyzing...' : 'âï¸ Battle â Find the Best Hook'}
+              {loading ? 'Analyzing...' : 'Battle â Find the Best Hook'}
             </button>
           </div>
 
-          {/* Results */}
           {results && results.length > 0 && (
             <div>
-              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: '#f1f5f9', textAlign: 'center' }}>
-                ð Results â Ranked by Score
+              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: '#f1f5f9', textAlign: 'center' }}>
+                Results &mdash; Ranked by Score
               </h2>
+              {winner && (
+                <div style={{ background: '#1a0f3a', border: '1px solid #8b5cf6', borderRadius: 10, padding: '12px 20px', marginBottom: 20, textAlign: 'center' }}>
+                  <p style={{ color: '#c4b5fd', fontSize: 14, margin: 0 }}>
+                    <strong style={{ color: '#a78bfa' }}>Winner:</strong> &ldquo;{winner}&rdquo;
+                  </p>
+                  {topTip && <p style={{ color: '#64748b', fontSize: 13, marginTop: 6, marginBottom: 0 }}>Tip: {topTip}</p>}
+                </div>
+              )}
               {results.map((result, i) => (
                 <HookResultCard key={i} result={result} rank={i} />
               ))}
@@ -273,7 +292,7 @@ export default function AnalyzePage() {
                   display: 'inline-block', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
                   color: 'white', padding: '12px 28px', borderRadius: 8, fontWeight: 700,
                   textDecoration: 'none', fontSize: 15
-                }}>â¨ Rewrite & Improve Your Best Hook</Link>
+                }}>Rewrite &amp; Improve Your Best Hook</Link>
               </div>
             </div>
           )}
