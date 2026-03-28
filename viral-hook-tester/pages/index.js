@@ -1,226 +1,103 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 
-// âââ Demo data âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-const DEMO_EXAMPLES = [
-  {
-    platform: 'TikTok', niche: 'Finance',
-    hooks: [
-      { style: 'Curiosity Gap', text: 'I saved $20k last year doing one thing my bank never told me about', score: 94 },
-      { style: 'Personal Story', text: "I was broke at 23. Here's the exact system I used to save $20k by 25", score: 91 },
-      { style: 'Bold Claim', text: 'Stop budgeting. Do this instead â I saved $20k without thinking about money', score: 88 },
-    ],
-  },
-  {
-    platform: 'YouTube', niche: 'Fitness',
-    hooks: [
-      { style: 'Personal Story', text: "I trained 3 days a week for 90 days. Here's exactly what changed", score: 93 },
-      { style: 'Bold Claim', text: "You don't need 6 days in the gym. My 90-day proof", score: 89 },
-      { style: 'Curiosity Gap', text: "The 3-day training split fitness influencers don't post about", score: 87 },
-    ],
-  },
-  {
-    platform: 'LinkedIn', niche: 'Business',
-    hooks: [
-      { style: 'Personal Story', text: "I got promoted twice in 18 months without asking once. Here's what I did", score: 95 },
-      { style: 'Curiosity Gap', text: "The promotion strategy no one talks about â and why it works", score: 90 },
-      { style: 'Bold Claim', text: 'Stop asking for promotions. Do this instead', score: 87 },
-    ],
-  },
-];
-
-function scoreColor(s) { if (s >= 75) return 'text-green-400'; if (s >= 55) return 'text-yellow-400'; return 'text-red-400'; }
-function scoreBarColor(s) { if (s >= 75) return 'bg-green-400'; if (s >= 55) return 'bg-yellow-400'; return 'bg-red-400'; }
-function scoreLabel(s) { if (s >= 88) return 'Exceptional'; if (s >= 75) return 'Strong'; if (s >= 60) return 'Decent'; return 'Weak'; }
-
-// âââ Animated Demo Widget âââââââââââââââââââââââââââââââââââââââââââââââââââââ
-function DemoWidget() {
-  const [exIdx, setExIdx] = useState(0);
-  const [hookIdx, setHookIdx] = useState(0);
-  const [typed, setTyped] = useState('');
-  const [phase, setPhase] = useState('typing');
-  const ex = DEMO_EXAMPLES[exIdx];
-  const hook = ex.hooks[hookIdx];
-
-  useEffect(() => {
-    setTyped(''); setPhase('typing');
-    let i = 0;
-    const interval = setInterval(() => {
-      i++;
-      setTyped(hook.text.slice(0, i));
-      if (i >= hook.text.length) { clearInterval(interval); setPhase('show'); }
-    }, 26);
-    return () => clearInterval(interval);
-  }, [hook.text]);
-
-  useEffect(() => {
-    if (phase !== 'show') return;
-    const t = setTimeout(() => {
-      const nextHook = (hookIdx + 1) % ex.hooks.length;
-      if (nextHook === 0) setExIdx((exIdx + 1) % DEMO_EXAMPLES.length);
-      setHookIdx(nextHook);
-    }, 2600);
-    return () => clearTimeout(t);
-  }, [phase, hookIdx, exIdx, ex.hooks.length]);
-
-  return (
-    <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5 text-left w-full max-w-lg mx-auto select-none">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-white/40">{ex.platform}</span>
-          <span className="text-white/15">Â·</span>
-          <span className="text-xs font-mono text-white/40">{ex.niche}</span>
-        </div>
-        <div className="flex gap-1">
-          {ex.hooks.map((_, i) => (
-            <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i === hookIdx ? 'w-6 bg-green-400' : 'w-2 bg-white/20'}`} />
-          ))}
-        </div>
-      </div>
-      <p className="text-xs font-mono text-white/25 mb-2">{hook.style.toUpperCase()}</p>
-      <p className="text-white font-semibold text-sm leading-snug min-h-[3.5rem] mb-4">
-        &ldquo;{typed}<span className={`inline-block w-0.5 h-4 bg-green-400 ml-0.5 align-middle ${phase === 'typing' ? 'animate-pulse' : 'opacity-0'}`} />&rdquo;
-      </p>
-      <div className={`flex items-baseline gap-2 mb-2 transition-opacity duration-500 ${phase === 'show' ? 'opacity-100' : 'opacity-0'}`}>
-        <span className={`text-2xl font-black font-mono ${scoreColor(hook.score)}`}>{hook.score}</span>
-        <span className="text-white/30 text-sm">/100</span>
-        <span className={`text-xs font-mono ${scoreColor(hook.score)}`}>{scoreLabel(hook.score)}</span>
-      </div>
-      <div className={`h-1.5 bg-white/10 rounded-full overflow-hidden transition-opacity duration-500 ${phase === 'show' ? 'opacity-100' : 'opacity-0'}`}>
-        <div className={`h-full rounded-full transition-all duration-700 ${scoreBarColor(hook.score)}`} style={{ width: phase === 'show' ? `${hook.score}%` : '0%' }} />
-      </div>
-      <p className="text-white/20 text-xs mt-3 font-mono">LIVE PREVIEW &middot; AI-GENERATED EXAMPLES</p>
-    </div>
-  );
-}
-
-// âââ How It Works âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-const HOW_STEPS = [
-  { icon: 'ð¯', title: 'Pick platform & niche', desc: 'TikTok, YouTube, Instagram, LinkedIn or Twitter â each gets a tailored hook style.' },
-  { icon: 'ð', title: 'Paste your content', desc: 'Drop in a caption draft, video idea, or script. Even a few sentences works.' },
-  { icon: 'â¡', title: 'Get 3 scored hooks', desc: 'AI generates 3 hooks in different styles, each scored across 5 psychological dimensions.' },
-];
-
-// âââ Landing Page âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export default function Home() {
   return (
     <>
       <Head>
-        <title>HookScore â Turn Any Content Into a Viral Hook</title>
-        <meta name="description" content="Paste your content and get 3 AI-generated, platform-optimised viral hooks in seconds. Free to try." />
-        <meta property="og:title" content="HookScore â AI Viral Hook Generator" />
-        <meta property="og:description" content="Paste your content. Get 3 AI-scored viral hooks. Pick the winner." />
+        <title>HookScore - AI Hook Tools for Creators</title>
+        <meta name="description" content="Generate scroll-stopping hooks, polish your drafts, and study proven hook blueprints. Free to start, no signup." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="min-h-screen bg-black text-white">
-
-        {/* Nav */}
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
           <span className="text-lg font-black tracking-tight">HookScore</span>
-          {/* Desktop nav */}
-          <div className="hidden sm:flex items-center gap-5">
+          <div className="hidden sm:flex items-center gap-6">
             <Link href="/generate" className="text-sm text-white/40 hover:text-white transition-colors">Generate</Link>
-            <Link href="/analyze" className="text-sm text-white/40 hover:text-white transition-colors">Analyze</Link>
-            <Link href="/improve" className="text-sm text-white/40 hover:text-white transition-colors">Improve</Link>
-            <Link href="/swipe" className="text-sm text-white/40 hover:text-white transition-colors">Swipe File</Link>
-            <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
-            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">
-              Try free &rarr;
-            </Link>
+            <Link href="/polish" className="text-sm text-white/40 hover:text-white transition-colors">Polish</Link>
+            <Link href="/blueprints" className="text-sm text-white/40 hover:text-white transition-colors">Blueprints</Link>
+            <Link href="/pricing" className="text-sm text-white/40 hover:text-white transition-colors">Pricing</Link>
+            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">Try free &rarr;</Link>
           </div>
-          {/* Mobile nav */}
           <div className="flex sm:hidden items-center gap-3">
-            <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
-            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">
-              Try free &rarr;
-            </Link>
+            <Link href="/pricing" className="text-sm text-white/50">Pricing</Link>
+            <Link href="/generate" className="text-sm font-semibold bg-green-400 hover:bg-green-300 text-black px-4 py-1.5 rounded-full transition-colors">Try free &rarr;</Link>
           </div>
         </nav>
-
-        {/* Hero */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 pb-16 text-center">
-          <div className="inline-flex items-center gap-2 text-xs font-mono text-green-400 border border-green-400/20 bg-green-400/5 px-3 py-1.5 rounded-full mb-7">
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-            AI Hook Toolkit &middot; 3 free uses/month &middot; No signup
-          </div>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight mb-6 leading-[1.05]">
-            Turn Any Content<br />
-            <span className="text-green-400">Into a Viral Hook</span>
-          </h1>
-          <p className="text-white/50 text-base sm:text-xl max-w-lg mx-auto mb-6 leading-relaxed">
-            Paste your post, script, or idea &mdash; get 3 platform-optimised, AI-scored hooks in seconds. Stop guessing what stops the scroll.
-          </p>
-          {/* Tool hint row â minimal, not a full section */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-10 text-xs font-mono text-white/25">
-            <Link href="/generate" className="hover:text-white/50 transition-colors">&#9889; Generate</Link>
-            <span>&middot;</span>
-            <Link href="/analyze" className="hover:text-white/50 transition-colors">&#9876; Analyze</Link>
-            <span>&middot;</span>
-            <Link href="/improve" className="hover:text-white/50 transition-colors">&#9997; Improve</Link>
-            <span>&middot;</span>
-            <Link href="/swipe" className="hover:text-white/50 transition-colors">&#128196; Swipe File</Link>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
-            <Link
-              href="/generate"
-              className="w-full sm:w-auto px-8 py-4 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-base transition-all active:scale-[0.98]"
-            >
-              &#9889; Generate my hooks free
-            </Link>
-            <Link
-              href="/pricing"
-              className="w-full sm:w-auto px-8 py-4 border border-white/15 hover:border-white/30 text-white/60 hover:text-white rounded-2xl text-base transition-all text-center"
-            >
-              See pricing &rarr;
-            </Link>
-          </div>
-
-          {/* Demo */}
-          <DemoWidget />
-          <p className="text-white/20 text-xs mt-4 font-mono tracking-wider">EXAMPLES &middot; REAL OUTPUT FROM THE GENERATOR</p>
-        </section>
-
-        {/* How it works */}
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-20">
-          <p className="text-xs font-mono tracking-widest text-white/25 text-center mb-8">HOW IT WORKS</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-14">
-            {HOW_STEPS.map((step, i) => (
-              <div key={i} className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
-                <div className="text-3xl mb-3">{step.icon}</div>
-                <div className="text-xs font-mono text-white/25 mb-1">STEP {i + 1}</div>
-                <p className="text-white font-semibold text-sm mb-1.5">{step.title}</p>
-                <p className="text-white/45 text-xs leading-relaxed">{step.desc}</p>
+        <main>
+          <section className="max-w-4xl mx-auto px-5 pt-20 pb-16 text-center">
+            <div className="inline-flex items-center gap-2 text-xs font-mono tracking-widest text-green-400/70 border border-green-400/20 rounded-full px-4 py-1.5 mb-8">
+              &#9889; 3 free uses/month &middot; No signup needed
+            </div>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-6">
+              Hooks that make<br /><span className="text-green-400">people stop scrolling</span>
+            </h1>
+            <p className="text-white/40 text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
+              AI tools built for creators. Generate hooks from scratch, polish your drafts, and study what makes them work.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link href="/generate" className="w-full sm:w-auto px-8 py-4 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-base transition-all active:scale-[0.98]">Generate hooks &rarr;</Link>
+              <Link href="/blueprints" className="w-full sm:w-auto px-8 py-4 bg-white/[0.06] hover:bg-white/10 text-white font-semibold rounded-2xl text-base transition-all border border-white/10">Browse blueprints</Link>
+            </div>
+          </section>
+          <section className="max-w-5xl mx-auto px-5 pb-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link href="/generate" className="group bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-green-400/30 rounded-2xl p-7 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center mb-5 text-xl">&#9889;</div>
+                <h2 className="text-lg font-bold mb-2">Generate</h2>
+                <p className="text-white/40 text-sm leading-relaxed mb-5">Pick your platform, drop in your topic, and get 5 scroll-stopping hooks in seconds. TikTok, Instagram, YouTube and more.</p>
+                <span className="text-green-400 text-sm font-semibold group-hover:translate-x-1 inline-block transition-transform">Generate hooks &rarr;</span>
+              </Link>
+              <Link href="/polish" className="group bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-green-400/30 rounded-2xl p-7 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center mb-5 text-xl">&#9997;</div>
+                <h2 className="text-lg font-bold mb-2">Polish</h2>
+                <p className="text-white/40 text-sm leading-relaxed mb-5">Already have a rough idea? Paste it in and get a sharper, punchier version back. No more second-guessing your wording.</p>
+                <span className="text-green-400 text-sm font-semibold group-hover:translate-x-1 inline-block transition-transform">Polish a hook &rarr;</span>
+              </Link>
+              <Link href="/blueprints" className="group bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-green-400/30 rounded-2xl p-7 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center mb-5 text-xl">&#128196;</div>
+                <h2 className="text-lg font-bold mb-2">Blueprints</h2>
+                <p className="text-white/40 text-sm leading-relaxed mb-5">Study skeleton frameworks of hooks that actually went viral. Understand the structure, then apply it to your own content.</p>
+                <span className="text-green-400 text-sm font-semibold group-hover:translate-x-1 inline-block transition-transform">Browse blueprints &rarr;</span>
+              </Link>
+            </div>
+          </section>
+          <section className="border-t border-white/[0.06] bg-white/[0.01]">
+            <div className="max-w-4xl mx-auto px-5 py-20">
+              <p className="text-xs font-mono tracking-widest text-white/25 text-center mb-12">HOW IT WORKS</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+                <div>
+                  <div className="text-3xl font-black text-green-400 mb-3">01</div>
+                  <h3 className="font-bold mb-2">Pick your platform</h3>
+                  <p className="text-white/35 text-sm leading-relaxed">TikTok, Instagram Reels, YouTube Shorts, LinkedIn, Twitter/X, or Facebook.</p>
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-green-400 mb-3">02</div>
+                  <h3 className="font-bold mb-2">Describe your content</h3>
+                  <p className="text-white/35 text-sm leading-relaxed">Tell us your topic or paste in a rough hook you already have.</p>
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-green-400 mb-3">03</div>
+                  <h3 className="font-bold mb-2">Get your hooks</h3>
+                  <p className="text-white/35 text-sm leading-relaxed">Pick the one that feels right and post it. Simple as that.</p>
+                </div>
               </div>
-            ))}
-          </div>
-
-          {/* Bottom CTA */}
-          <div className="text-center border border-white/8 rounded-2xl p-10 bg-white/[0.02]">
-            <h2 className="text-2xl sm:text-3xl font-black mb-3">Ready to stop guessing?</h2>
-            <p className="text-white/40 text-sm mb-7 max-w-sm mx-auto">3 free uses per tool per month. No signup, no credit card.</p>
-            <Link
-              href="/generate"
-              className="inline-block px-10 py-4 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-base transition-all active:scale-[0.98]"
-            >
-              &#9889; Try it free
-            </Link>
-          </div>
-        </section>
-
-        {/* Footer */}
+            </div>
+          </section>
+          <section className="max-w-3xl mx-auto px-5 py-20 text-center">
+            <h2 className="text-3xl sm:text-4xl font-black mb-4">Ready to stop guessing?</h2>
+            <p className="text-white/40 mb-8 text-base">3 free uses per tool per month. No account, no card.</p>
+            <Link href="/generate" className="inline-block px-10 py-4 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-base transition-all active:scale-[0.98]">&#9889; Start generating</Link>
+          </section>
+        </main>
         <footer className="border-t border-white/[0.06] px-6 py-8 text-center">
-          <div className="flex items-center justify-center gap-5 mb-4 text-sm text-white/25">
+          <div className="flex items-center justify-center gap-6 mb-4 text-sm text-white/25">
             <Link href="/generate" className="hover:text-white/50 transition-colors">Generate</Link>
-            <Link href="/analyze" className="hover:text-white/50 transition-colors">Analyze</Link>
-            <Link href="/improve" className="hover:text-white/50 transition-colors">Improve</Link>
-            <Link href="/swipe" className="hover:text-white/50 transition-colors">Swipe File</Link>
+            <Link href="/polish" className="hover:text-white/50 transition-colors">Polish</Link>
+            <Link href="/blueprints" className="hover:text-white/50 transition-colors">Blueprints</Link>
             <Link href="/pricing" className="hover:text-white/50 transition-colors">Pricing</Link>
           </div>
-          <p className="text-white/20 text-sm">
-            &copy; {new Date().getFullYear()} HookScore
-          </p>
+          <p className="text-white/20 text-sm">&copy; {new Date().getFullYear()} HookScore</p>
         </footer>
       </div>
     </>
