@@ -1,175 +1,285 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const FREE_LIMIT = 5;
+const STORAGE_KEY = 'hookscore_analyze_v1';
 
-// Simple in-memory rate limiter (resets on server restart / Vercel cold start)
-// For production, swap this for Redis or Upstash
-const rateLimitMap = new Map();
-const SERVER_RATE_LIMIT = 20; // max requests per IP per hour
-
-function checkRateLimit(ip) {
-  const now = Date.now();
-  const windowMs = 60 * 60 * 1000; // 1 hour
-
-  if (!rateLimitMap.has(ip)) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
-    return true;
-  }
-
-  const data = rateLimitMap.get(ip);
-  if (now > data.resetTime) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
-    return true;
-  }
-
-  if (data.count >= SERVER_RATE_LIMIT) return false;
-  data.count++;
-  return true;
+function getUsageCount() {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const today = new Date().toDateString();
+    if (data.date !== today) return 0;
+    return data.count || 0;
+  } catch { return 0; }
 }
 
-const PLATFORM_CONTEXT = {
-  TikTok: 'TikTok short-form video (15s–3min). Audience scrolls fast. First 1–2 seconds decide everything. Visual hooks, bold text overlays, and pattern interrupts work best. Average watch time is 7s.',
-  YouTube: 'YouTube long-form video. Audience decides in the first 30 seconds. Thumbnail + hook work together. Curiosity loops, lists, and credibility signals work best.',
-  Instagram: 'Instagram Reels and feed posts. Visual-first platform. Audience skips instantly. Relatability, aesthetic, and quick emotional payoff dominate.',
-  'Twitter/X': 'Twitter/X text-based feed. Readers scan in under 2 seconds. Contrarian takes, bold claims, and curiosity gaps work best. Character limit demands precision.',
-  LinkedIn: 'LinkedIn professional network. Audience skimming during work. Personal stories, vulnerability, and professional credibility drive engagement. "I did X and it changed my career" format works.',
-};
-
-const NICHE_CONTEXT = {
-  Finance: 'Personal finance, investing, money-saving, wealth building. Core fears: losing money, missing out, dying broke. Core desires: financial freedom, passive income, retiring early.',
-  Fitness: 'Workouts, nutrition, weight loss, muscle gain, mental health. Core fears: never reaching goals, wasting time with wrong methods. Core desires: body transformation, confidence, longevity.',
-  Beauty: 'Skincare, makeup, haircare, aesthetics. Core desires: looking effortlessly good, finding hidden gems, being ahead of trends. Social proof and before/afters dominate.',
-  Tech: 'Gadgets, software, AI tools, productivity. Core desires: doing more in less time, being first to know, having an edge. "You\'re wasting your time without this" style works.',
-  Food: 'Recipes, restaurants, food culture. Core desire: easy wins in the kitchen, impressive results, nostalgic flavors. Visual payoff matters enormously.',
-  Gaming: 'Video games, esports, gaming culture. Core desires: getting better, discovering secrets, community belonging. Insider knowledge and skill demonstrations drive engagement.',
-  Business: 'Entrepreneurship, startups, side hustles, marketing. Core fears: failing, wasting time on wrong path. Core desires: freedom, revenue, scale. Real numbers and results convert.',
-  Lifestyle: 'Daily routines, minimalism, travel, self-improvement. Core desires: simplification, aesthetic living, self-optimization. Personal transformation stories dominate.',
-  Education: 'Learning, skills, career growth, academic content. Core desires: learning faster, getting credentials, career advancement. Counterintuitive insights and shortcuts dominate.',
-  Comedy: 'Humor, memes, relatable content. Core desire: to laugh and share. Relatability, timing, and subverted expectations are everything.',
-};
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // Rate limit check
-  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip)) {
-    return res.status(429).json({ error: 'Too many requests. Please try again later.' });
-  }
-
-  const { hooks, platform, niche } = req.body;
-
-  if (!hooks || !Array.isArray(hooks) || hooks.length === 0) {
-    return res.status(400).json({ error: 'No hooks provided' });
-  }
-
-  if (hooks.length > 6) {
-    return res.status(400).json({ error: 'Maximum 6 hooks allowed' });
-  }
-
-  const validHooks = hooks.filter(h => typeof h === 'string' && h.trim().length > 0);
-  if (validHooks.length === 0) {
-    return res.status(400).json({ error: 'All hooks are empty' });
-  }
-
-  const platformCtx = PLATFORM_CONTEXT[platform] || PLATFORM_CONTEXT['TikTok'];
-  const nicheCtx = NICHE_CONTEXT[niche] || NICHE_CONTEXT['Business'];
-
-  const hooksText = validHooks.map((hook, i) => `Hook ${i + 1}: "${hook.trim()}"`).join('\n');
-
-  const systemPrompt = `You are a viral content strategist who has analyzed over 100,000 high-performing social media posts. You understand the psychology of scroll-stopping hooks and have a data-driven understanding of what drives engagement on each platform. You are direct, specific, and never give generic advice. Your scores reflect real benchmarks — a score of 90+ is rare and means genuinely outstanding viral potential. Most decent hooks score 55–72. A score below 40 means the hook will likely be scrolled past.`;
-
-  const userPrompt = `Analyze these hooks for a ${niche} creator on ${platform}.
-
-PLATFORM CONTEXT: ${platformCtx}
-AUDIENCE PSYCHOLOGY: ${nicheCtx}
-
-HOOKS TO ANALYZE:
-${hooksText}
-
-Score each hook on these 5 dimensions (0–100 each):
-- curiosityGap: Does it create an information void the viewer MUST fill? Does it tease without giving away the answer?
-- clarity: Can a random person understand exactly what this is about in under 2 seconds? No confusion.
-- emotionalTrigger: Does it trigger fear of missing out, curiosity, surprise, desire, or pain? Stronger = higher score.
-- platformFit: Does it match the tone, format, and audience expectations of ${platform} specifically?
-- nicheRelevance: Does it speak directly to the specific pain points, desires, or insider language of the ${niche} audience?
-
-Calculate overallScore as: (curiosityGap * 0.30) + (clarity * 0.20) + (emotionalTrigger * 0.25) + (platformFit * 0.10) + (nicheRelevance * 0.15). Round to nearest integer.
-
-Be brutally honest. Do NOT give inflated scores to seem encouraging. A generic hook deserves a 40. A genuinely scroll-stopping hook deserves an 85+.
-
-Respond with ONLY valid JSON. No markdown, no explanation outside the JSON.
-
-{
-  "hooks": [
-    {
-      "text": "exact hook text as provided",
-      "scores": {
-        "curiosityGap": 0,
-        "clarity": 0,
-        "emotionalTrigger": 0,
-        "platformFit": 0,
-        "nicheRelevance": 0
-      },
-      "overallScore": 0,
-      "verdict": "One punchy sentence verdict on this hook's viral potential",
-      "weakness": "The single most important thing holding this hook back (be specific)",
-      "improvement": "A rewritten, improved version of this hook that fixes the weakness"
-    }
-  ],
-  "winner": 0,
-  "winnerReason": "One sentence explaining why this hook beats the others on ${platform}",
-  "topTip": "One actionable insight that applies across all these hooks for ${niche} content on ${platform}"
-}`;
-
+function incrementUsage() {
+  if (typeof window === 'undefined') return;
   try {
-    const message = await client.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 2000,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
-    });
+    const today = new Date().toDateString();
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const count = (data.date === today ? data.count || 0 : 0) + 1;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, count }));
+  } catch {}
+}
 
-    const content = message.content[0].text.trim();
+function ScoreBar({ label, value, color }) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={{ fontSize: 13, color: '#94a3b8' }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}/10</span>
+      </div>
+      <div style={{ background: '#1e293b', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+        <div style={{ width: `${value * 10}%`, background: color, height: '100%', borderRadius: 4, transition: 'width 0.6s ease' }} />
+      </div>
+    </div>
+  );
+}
 
-    // Extract JSON (handle potential markdown code blocks)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No valid JSON in response');
+function HookResultCard({ result, rank }) {
+  const rankColors = ['#f59e0b', '#94a3b8', '#cd7c2f'];
+  const rankLabels = ['ð¥ Best Hook', 'ð¥ 2nd Place', 'ð¥ 3rd Place'];
+  const scoreColor = result.overallScore >= 7 ? '#22c55e' : result.overallScore >= 5 ? '#f59e0b' : '#ef4444';
+
+  return (
+    <div style={{
+      background: '#0f172a',
+      border: `1px solid ${rank === 0 ? '#f59e0b' : '#1e293b'}`,
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 16,
+      position: 'relative'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: rankColors[rank], textTransform: 'uppercase', letterSpacing: 1 }}>
+          {rankLabels[rank]}
+        </span>
+        <span style={{ fontSize: 28, fontWeight: 900, color: scoreColor }}>{result.overallScore}<span style={{ fontSize: 14, color: '#475569' }}>/10</span></span>
+      </div>
+      <p style={{ color: '#e2e8f0', fontSize: 15, lineHeight: 1.6, marginBottom: 16, fontStyle: 'italic' }}>"{result.hook}"</p>
+      <ScoreBar label="Curiosity Gap" value={result.scores.curiosityGap} color="#8b5cf6" />
+      <ScoreBar label="Emotional Trigger" value={result.scores.emotionalTrigger} color="#ec4899" />
+      <ScoreBar label="Clarity" value={result.scores.clarity} color="#06b6d4" />
+      <ScoreBar label="Platform Fit" value={result.scores.platformFit} color="#10b981" />
+      <ScoreBar label="Niche Relevance" value={result.scores.nicheRelevance} color="#f59e0b" />
+      {result.feedback && (
+        <p style={{ marginTop: 12, fontSize: 13, color: '#64748b', borderTop: '1px solid #1e293b', paddingTop: 12 }}>
+          ð¡ {result.feedback}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function UpgradeModal({ onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+    }}>
+      <div style={{ background: '#0f172a', border: '1px solid #8b5cf6', borderRadius: 16, padding: 40, maxWidth: 420, textAlign: 'center' }}>
+        <div style={{ fontSize: 40, marginBottom: 16 }}>ð</div>
+        <h2 style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Free Limit Reached</h2>
+        <p style={{ color: '#94a3b8', marginBottom: 24 }}>
+          You've used all {FREE_LIMIT} free analyses today. Upgrade to Pro for unlimited access.
+        </p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <Link href="/pricing" style={{
+            background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+            color: 'white', padding: '12px 24px', borderRadius: 8,
+            fontWeight: 700, textDecoration: 'none', fontSize: 15
+          }}>View Pricing</Link>
+          <button onClick={onClose} style={{
+            background: '#1e293b', color: '#94a3b8', padding: '12px 24px',
+            borderRadius: 8, border: '1px solid #334155', cursor: 'pointer', fontSize: 15
+          }}>Maybe Later</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const PLATFORMS = ['TikTok', 'Instagram Reels', 'YouTube Shorts', 'LinkedIn', 'Twitter/X', 'Facebook'];
+
+export default function AnalyzePage() {
+  const [hooks, setHooks] = useState(['', '', '']);
+  const [platform, setPlatform] = useState('TikTok');
+  const [niche, setNiche] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState('');
+  const [usageCount, setUsageCount] = useState(0);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [isPro] = useState(false);
+
+  useEffect(() => {
+    setUsageCount(getUsageCount());
+  }, []);
+
+  const filledHooks = hooks.filter(h => h.trim().length > 0);
+
+  async function handleAnalyze() {
+    if (filledHooks.length < 2) {
+      setError('Please enter at least 2 hooks to compare.');
+      return;
+    }
+    if (!niche.trim()) {
+      setError('Please enter your niche/topic.');
+      return;
+    }
+    if (!isPro && usageCount >= FREE_LIMIT) {
+      setShowUpgrade(true);
+      return;
     }
 
-    const analysis = JSON.parse(jsonMatch[0]);
+    setLoading(true);
+    setError('');
+    setResults(null);
 
-    // Validate structure
-    if (!analysis.hooks || !Array.isArray(analysis.hooks)) {
-      throw new Error('Invalid analysis structure');
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hooks: filledHooks, platform, niche })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Analysis failed');
+
+      incrementUsage();
+      const newCount = getUsageCount();
+      setUsageCount(newCount);
+      setResults(data.results);
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    // Clamp all scores to 0–100 range
-    analysis.hooks = analysis.hooks.map(hook => ({
-      ...hook,
-      overallScore: Math.min(100, Math.max(0, Math.round(hook.overallScore))),
-      scores: Object.fromEntries(
-        Object.entries(hook.scores).map(([k, v]) => [k, Math.min(100, Math.max(0, Math.round(v)))])
-      ),
-    }));
-
-    // Ensure winner index is valid
-    analysis.winner = Math.min(analysis.hooks.length - 1, Math.max(0, analysis.winner));
-
-    return res.status(200).json(analysis);
-  } catch (err) {
-    console.error('Analysis error:', err.message);
-
-    if (err.status === 401) {
-      return res.status(500).json({ error: 'Invalid API key. Check your ANTHROPIC_API_KEY.' });
-    }
-    if (err.status === 429) {
-      return res.status(429).json({ error: 'AI rate limit hit. Please wait a moment and try again.' });
-    }
-
-    return res.status(500).json({ error: 'Analysis failed. Please try again.' });
   }
+
+  const remaining = Math.max(0, FREE_LIMIT - usageCount);
+
+  return (
+    <>
+      <Head>
+        <title>Compare & Analyze Hooks | HookScore</title>
+        <meta name="description" content="Compare up to 3 hooks side by side and find out which one wins." />
+      </Head>
+      <div style={{ minHeight: '100vh', background: '#020817', color: '#f1f5f9', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+        {/* Nav */}
+        <nav style={{ borderBottom: '1px solid #1e293b', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 900, margin: '0 auto' }}>
+          <Link href="/" style={{ color: '#8b5cf6', fontWeight: 900, fontSize: 20, textDecoration: 'none' }}>â¡ HookScore</Link>
+          <div style={{ display: 'flex', gap: 24, fontSize: 14 }}>
+            <Link href="/generate" style={{ color: '#94a3b8', textDecoration: 'none' }}>Generate</Link>
+            <Link href="/analyze" style={{ color: '#f1f5f9', fontWeight: 600, textDecoration: 'none' }}>Analyze</Link>
+            <Link href="/improve" style={{ color: '#94a3b8', textDecoration: 'none' }}>Improve</Link>
+            <Link href="/swipe" style={{ color: '#94a3b8', textDecoration: 'none' }}>Swipe File</Link>
+            <Link href="/pricing" style={{ color: '#94a3b8', textDecoration: 'none' }}>Pricing</Link>
+          </div>
+        </nav>
+
+        <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <h1 style={{ fontSize: 36, fontWeight: 900, marginBottom: 12 }}>
+              Hook <span style={{ color: '#8b5cf6' }}>Battle Mode</span>
+            </h1>
+            <p style={{ color: '#94a3b8', fontSize: 16 }}>Compare up to 3 hooks and see which one wins â scored by AI.</p>
+            {!isPro && (
+              <p style={{ marginTop: 12, fontSize: 13, color: remaining <= 1 ? '#ef4444' : '#64748b' }}>
+                {remaining} free {remaining === 1 ? 'analysis' : 'analyses'} remaining today
+              </p>
+            )}
+          </div>
+
+          {/* Input Card */}
+          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 16, padding: 28, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div>
+                <label style={{ fontSize: 13, color: '#94a3b8', display: 'block', marginBottom: 6 }}>Platform</label>
+                <select
+                  value={platform}
+                  onChange={e => setPlatform(e.target.value)}
+                  style={{ width: '100%', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '10px 12px', color: '#f1f5f9', fontSize: 14 }}
+                >
+                  {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 13, color: '#94a3b8', display: 'block', marginBottom: 6 }}>Niche / Topic</label>
+                <input
+                  type="text"
+                  value={niche}
+                  onChange={e => setNiche(e.target.value)}
+                  placeholder="e.g. personal finance, fitness..."
+                  style={{ width: '100%', background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '10px 12px', color: '#f1f5f9', fontSize: 14, boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            {hooks.map((hook, i) => (
+              <div key={i} style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 13, color: '#94a3b8', display: 'block', marginBottom: 6 }}>
+                  Hook {i + 1} {i >= 2 && <span style={{ color: '#475569' }}>(optional)</span>}
+                </label>
+                <textarea
+                  value={hook}
+                  onChange={e => {
+                    const next = [...hooks];
+                    next[i] = e.target.value;
+                    setHooks(next);
+                  }}
+                  placeholder={`Enter hook ${i + 1}...`}
+                  rows={2}
+                  style={{
+                    width: '100%', background: '#1e293b', border: '1px solid #334155',
+                    borderRadius: 8, padding: '10px 12px', color: '#f1f5f9', fontSize: 14,
+                    resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+            ))}
+
+            {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 16 }}>â ï¸ {error}</p>}
+
+            <button
+              onClick={handleAnalyze}
+              disabled={loading || filledHooks.length < 2}
+              style={{
+                width: '100%', padding: '14px 24px',
+                background: loading || filledHooks.length < 2 ? '#1e293b' : 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                color: loading || filledHooks.length < 2 ? '#475569' : 'white',
+                border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700,
+                cursor: loading || filledHooks.length < 2 ? 'not-allowed' : 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              {loading ? 'â¡ Analyzing...' : 'âï¸ Battle â Find the Best Hook'}
+            </button>
+          </div>
+
+          {/* Results */}
+          {results && results.length > 0 && (
+            <div>
+              <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: '#f1f5f9', textAlign: 'center' }}>
+                ð Results â Ranked by Score
+              </h2>
+              {results.map((result, i) => (
+                <HookResultCard key={i} result={result} rank={i} />
+              ))}
+              <div style={{ textAlign: 'center', marginTop: 24 }}>
+                <Link href="/improve" style={{
+                  display: 'inline-block', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+                  color: 'white', padding: '12px 28px', borderRadius: 8, fontWeight: 700,
+                  textDecoration: 'none', fontSize: 15
+                }}>â¨ Rewrite & Improve Your Best Hook</Link>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+    </>
+  );
 }
