@@ -145,11 +145,11 @@ export default function Swipe() {
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">HookScore</Link>
-            <span className="hidden sm:inline text-xs font-mono text-white/25 border border-white/10 px-2 py-0.5 rounded">SWIPE FILE</span>
+            <span className="hidden sm:inline text-xs font-mono text-white/25 border border-white/10 px-2 py-0.5 rounded">BLUEPRINTS</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/generate" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Generate</Link>
-            <Link 
+            <Link href="/blueprints" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
             <Link href="/polish"  className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
             <Link href="/pricing"  className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
           </div>
