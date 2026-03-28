@@ -319,7 +319,7 @@ export default function Generate() {
               </button>
             )}
             <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
-            <Link href="/blueprints"   className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Swipe</Link>
+            <Link href="/blueprints"   className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
             <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
             {remaining === 0 ? (
               <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-xs font-mono text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors">
