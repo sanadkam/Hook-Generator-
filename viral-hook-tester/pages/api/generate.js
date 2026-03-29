@@ -102,10 +102,10 @@ function sanitizeText(str) {
 // ─── Platform / Niche context ──────────────────────────────────────────────────
 const PLATFORM_CONTEXT = {
   TikTok:    { desc: 'TikTok short-form video (15s–3min). Viewer decides in the first 1–2 seconds.', format: 'Short, punchy, spoken aloud. 5–12 words.', examples: ['"I wish someone told me this sooner"', '"Stop scrolling — this could save you $X"'] },
-  YouTube:   { desc: 'YouTube long-form video. Viewer decides in the first 15–30 seconds.', format: 'More complete sentence. 8–18 words.', examples: ['"I tested every productivity system so you don't have to"'] },
+  YouTube:   { desc: 'YouTube long-form video. Viewer decides in the first 15–30 seconds.', format: 'More complete sentence. 8–18 words.', examples: ['"I tested every productivity system so you don\'t have to"'] },
   Instagram: { desc: 'Instagram Reels/feed. Hook is first line or on-screen text.', format: 'Short and visual. 5–10 words.', examples: ['"No one talks about this part of X"'] },
   'Twitter/X': { desc: 'Twitter/X text-based feed. The hook IS the first line.', format: 'Sharp, punchy, standalone sentence. 6–12 words.', examples: ['"Most people get X completely backwards"'] },
-  LinkedIn:  { desc: 'LinkedIn professional network. Hook is the first 1–2 lines before "see more".', format: '1–2 punchy sentences. 10–20 words total.', examples: ['"I got rejected 14 times before landing my dream role. Here's what changed."'] },
+  LinkedIn:  { desc: 'LinkedIn professional network. Hook is the first 1–2 lines before "see more".', format: '1–2 punchy sentences. 10–20 words total.', examples: ['"I got rejected 14 times before landing my dream role. Here\'s what changed."'] },
 };
 
 const NICHE_CONTEXT = {
