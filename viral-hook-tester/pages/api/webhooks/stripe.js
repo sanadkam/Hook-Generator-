@@ -13,11 +13,11 @@ function getRawBody(req) {
   });
 }
 
-// Map your Stripe Price IDs to plan names after creating products in Stripe
+// Stripe Price IDs -> plan names, set via Vercel environment variables
 const PLAN_MAP = {
-  // 'price_xxx': 'creator',
-  // 'price_yyy': 'pro',
-  // 'price_zzz': 'agency',
+  ...(process.env.STRIPE_PRICE_CREATOR && { [process.env.STRIPE_PRICE_CREATOR]: 'creator' }),
+  ...(process.env.STRIPE_PRICE_PRO     && { [process.env.STRIPE_PRICE_PRO]:     'pro'     }),
+  ...(process.env.STRIPE_PRICE_AGENCY  && { [process.env.STRIPE_PRICE_AGENCY]:  'agency'  }),
 };
 
 function getPlanFromLineItems(items) {
