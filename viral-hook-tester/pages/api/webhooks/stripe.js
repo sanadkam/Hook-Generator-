@@ -1,7 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-// Disable Next.js body parsing — Stripe needs the raw body to verify the signature
 export const config = { api: { bodyParser: false } };
 
 function getRawBody(req) {
@@ -13,7 +12,6 @@ function getRawBody(req) {
   });
 }
 
-// Stripe Price IDs -> plan names, set via Vercel environment variables
 const PLAN_MAP = {
   ...(process.env.STRIPE_PRICE_CREATOR && { [process.env.STRIPE_PRICE_CREATOR]: 'creator' }),
   ...(process.env.STRIPE_PRICE_PRO     && { [process.env.STRIPE_PRICE_PRO]:     'pro'     }),
@@ -44,7 +42,6 @@ export default async function handler(req, res) {
 
   const rawBody = await getRawBody(req);
   const sig     = req.headers['stripe-signature'];
-
   let event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
@@ -58,8 +55,9 @@ export default async function handler(req, res) {
 
   try {
     switch (type) {
+
       case 'checkout.session.completed': {
-        const customerId     = obj.customer;
+        const customerId    = obj.customer;
         const subscriptionId = obj.subscription;
         const customerEmail  = obj.customer_details?.email || obj.customer_email;
         if (!customerEmail) break;
@@ -74,15 +72,23 @@ export default async function handler(req, res) {
         });
         const plan   = getPlanFromLineItems(subscription.items);
         const status = subscription.status;
+        const now    = new Date().toISOString();
 
+        // Update subscriptions table
         await admin.from('subscriptions').upsert({
           user_id: user.id,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
-          plan,
-          status,
-          updated_at: new Date().toISOString(),
+          plan, status, updated_at: now,
         }, { onConflict: 'user_id' });
+
+        // Sync profiles table so the app sees the new plan immediately
+        await admin.from('profiles').upsert({
+          id: user.id,
+          plan,
+          stripe_customer_id: customerId,
+          updated_at: now,
+        }, { onConflict: 'id' });
 
         console.log(`Subscription activated: ${customerEmail} -> ${plan}`);
         break;
@@ -92,33 +98,54 @@ export default async function handler(req, res) {
         const subscriptionId = obj.id;
         const status = obj.status;
         const plan   = getPlanFromLineItems(obj.items);
+        const now    = new Date().toISOString();
+        const activePlan = status === 'active' ? plan : 'free';
 
         const { data: rows } = await admin
           .from('subscriptions')
           .select('user_id')
           .eq('stripe_subscription_id', subscriptionId);
 
-        const update = {
-          plan: status === 'active' ? plan : 'free',
-          status,
-          updated_at: new Date().toISOString(),
-        };
+        const subUpdate = { plan: activePlan, status, updated_at: now };
 
+        let userId = null;
         if (rows?.length) {
-          await admin.from('subscriptions').update(update).eq('stripe_subscription_id', subscriptionId);
+          await admin.from('subscriptions').update(subUpdate).eq('stripe_subscription_id', subscriptionId);
+          userId = rows[0].user_id;
         } else {
-          await admin.from('subscriptions').update(update).eq('stripe_customer_id', obj.customer);
+          const { data: byCustomer } = await admin
+            .from('subscriptions')
+            .select('user_id')
+            .eq('stripe_customer_id', obj.customer);
+          await admin.from('subscriptions').update(subUpdate).eq('stripe_customer_id', obj.customer);
+          userId = byCustomer?.[0]?.user_id;
         }
+
+        // Sync profiles
+        if (userId) {
+          await admin.from('profiles').update({ plan: activePlan, updated_at: now }).eq('id', userId);
+        }
+
         console.log(`Subscription updated: ${subscriptionId} -> ${status}/${plan}`);
         break;
       }
 
       case 'customer.subscription.deleted': {
+        const now = new Date().toISOString();
+        const { data: rows } = await admin
+          .from('subscriptions')
+          .select('user_id')
+          .eq('stripe_subscription_id', obj.id);
+
         await admin.from('subscriptions').update({
-          plan: 'free',
-          status: 'canceled',
-          updated_at: new Date().toISOString(),
+          plan: 'free', status: 'canceled', updated_at: now,
         }).eq('stripe_subscription_id', obj.id);
+
+        // Sync profiles
+        if (rows?.[0]?.user_id) {
+          await admin.from('profiles').update({ plan: 'free', updated_at: now }).eq('id', rows[0].user_id);
+        }
+
         console.log(`Subscription canceled: ${obj.id}`);
         break;
       }
@@ -126,20 +153,17 @@ export default async function handler(req, res) {
       case 'invoice.payment_failed': {
         if (obj.subscription) {
           await admin.from('subscriptions').update({
-            status: 'past_due',
-            updated_at: new Date().toISOString(),
+            status: 'past_due', updated_at: new Date().toISOString(),
           }).eq('stripe_subscription_id', obj.subscription);
           console.log(`Payment failed: ${obj.subscription}`);
         }
         break;
       }
 
-      default:
-        break;
+      default: break;
     }
   } catch (err) {
     console.error(`Webhook handler error [${type}]:`, err);
-    // Return 200 to avoid Stripe retrying on application errors
   }
 
   return res.status(200).json({ received: true });
