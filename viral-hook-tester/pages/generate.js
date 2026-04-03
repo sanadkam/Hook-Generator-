@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useContext } from 'react';
+import { supabase } from '../lib/supabase';
+import { AuthContext } from '../lib/AuthContext';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -245,6 +247,21 @@ export default function Generate() {
   useEffect(() => { setUsageCount(getUsageData().count); setHistory(loadHistory()); }, []);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, []);
 
+  const { session } = useContext(AuthContext);
+  const [userPlan, setUserPlan] = useState(null);
+
+  useEffect(() => {
+    if (!session?.user || !supabase) return;
+    supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', session.user.id)
+      .single()
+      .then(({ data }) => setUserPlan(data?.plan || 'free'));
+  }, [session]);
+
+  const isPro = userPlan && userPlan !== 'free';
+
   const remaining = Math.max(0, FREE_LIMIT - usageCount);
 
   const handleFile = (f) => {
@@ -258,6 +275,7 @@ export default function Generate() {
   const generate = async () => {
     const hasText = inputMode === 'text'   && text.trim().length > 10;
     const hasFile = inputMode === 'upload' && file;
+    if (hasFile && !isPro) { setUpgradeReason('proFeature'); setShowUpgrade(true); return; }
     if (!hasText && !hasFile) {
       setError(inputMode === 'text' ? 'Paste your content — a draft, caption, script, or a few notes.' : 'Upload a screenshot or image of your content.');
       return;
@@ -419,12 +437,12 @@ export default function Generate() {
                 </button>
                 {/* Upload tab — Pro only */}
                 <button
-                  onClick={() => { setUpgradeReason('proFeature'); setShowUpgrade(true); }}
+                  onClick={() => { if (isPro) { setInputMode('upload'); setError(null); } else { setUpgradeReason('proFeature'); setShowUpgrade(true); } }}
                   className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center text-white/25 flex items-center justify-center gap-1.5"
                   title="Pro feature"
                 >
                   📎 Upload image
-                  <span className="text-[10px] font-mono text-green-400 border border-green-400/30 px-1.5 py-0.5 rounded-full leading-none">PRO</span>
+                  {!isPro && <span className="text-[10px] font-mono text-green-400 border border-green-400/30 px-1.5 py-0.5 rounded-full leading-none">PRO</span>}
                 </button>
               </div>
             </div>
