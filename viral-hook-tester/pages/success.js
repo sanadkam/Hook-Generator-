@@ -24,13 +24,13 @@ export default function Success() {
   return (
     <>
       <Head>
-        <title>Payment Successful — HookScore</title>
+        <title>Payment Successful — HookLab</title>
         <meta name="robots" content="noindex" />
       </Head>
       <div className="min-h-screen bg-black text-white flex flex-col">
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
           <Link href="/" className="text-white font-bold text-lg tracking-tight">
-            Hook<span className="text-green-400">Score</span>
+            Hook<span className="text-green-400">Lab</span>
           </Link>
           <div className="flex items-center gap-4 text-sm text-white/50">
             <Link href="/generate" className="hover:text-white transition-colors">Generator</Link>
