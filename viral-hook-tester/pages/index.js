@@ -8,6 +8,16 @@ export default function Home() {
         <title>HookLab - AI Hook Tools for Creators</title>
         <meta name="description" content="Generate scroll-stopping hooks, polish your drafts, and study proven hook blueprints. Free to start, no signup." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://hook-generator-tau.vercel.app" />
+        <meta property="og:title" content="HookLab - AI Hook Tools for Creators" />
+        <meta property="og:description" content="Generate scroll-stopping hooks, polish your drafts, and study proven hook blueprints. Free to start, no signup." />
+        <meta property="og:image" content="https://hook-generator-tau.vercel.app/og.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="HookLab - AI Hook Tools for Creators" />
+        <meta name="twitter:description" content="Generate scroll-stopping hooks, polish your drafts, and study proven hook blueprints. Free to start, no signup." />
+        <meta name="twitter:image" content="https://hook-generator-tau.vercel.app/og.png" />
+        <link rel="canonical" href="https://hook-generator-tau.vercel.app" />
       </Head>
       <div className="min-h-screen bg-black text-white">
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
