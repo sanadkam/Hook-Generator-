@@ -5,6 +5,7 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { supabase } from '../lib/supabase';
 import { AuthContext } from '../lib/AuthContext';
+import CookieBanner from '../components/CookieBanner';
 
 if (typeof window !== 'undefined') {
   posthog.init('phc_7X74oAjFi2IWdNSncip4ut8ry6DcXKTruiwHP626iZG', {
@@ -26,7 +27,6 @@ export default function App({ Component, pageProps }) {
       return;
     }
 
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setAuthLoading(false);
@@ -35,7 +35,6 @@ export default function App({ Component, pageProps }) {
       }
     });
 
-    // Listen for auth changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (session?.user) {
@@ -48,7 +47,6 @@ export default function App({ Component, pageProps }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Track page views on route change
   useEffect(() => {
     const handleRouteChange = () => posthog.capture('$pageview');
     router.events.on('routeChangeComplete', handleRouteChange);
@@ -61,6 +59,7 @@ export default function App({ Component, pageProps }) {
     <AuthContext.Provider value={{ session, authLoading, authEnabled }}>
       <PostHogProvider client={posthog}>
         <Component {...pageProps} />
+        <CookieBanner />
       </PostHogProvider>
     </AuthContext.Provider>
   );
