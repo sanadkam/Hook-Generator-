@@ -96,6 +96,8 @@ export default function Home() {
             <Link href="/polish" className="hover:text-white/50 transition-colors">Polish</Link>
             <Link href="/blueprints" className="hover:text-white/50 transition-colors">Blueprints</Link>
             <Link href="/pricing" className="hover:text-white/50 transition-colors">Pricing</Link>
+            <Link href="/privacy" className="hover:text-white/50 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-white/50 transition-colors">Terms</Link>
           </div>
           <p className="text-white/20 text-sm">&copy; {new Date().getFullYear()} HookLab</p>
         </footer>
