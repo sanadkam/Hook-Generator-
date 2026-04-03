@@ -1,6 +1,7 @@
 import '../styles/globals.css';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { supabase } from '../lib/supabase';
@@ -56,11 +57,16 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, authLoading, authEnabled }}>
-      <PostHogProvider client={posthog}>
-        <Component {...pageProps} />
-        <CookieBanner />
-      </PostHogProvider>
-    </AuthContext.Provider>
+    <>
+      <Head>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪝</text></svg>" />
+      </Head>
+      <AuthContext.Provider value={{ session, authLoading, authEnabled }}>
+        <PostHogProvider client={posthog}>
+          <Component {...pageProps} />
+          <CookieBanner />
+        </PostHogProvider>
+      </AuthContext.Provider>
+    </>
   );
 }
