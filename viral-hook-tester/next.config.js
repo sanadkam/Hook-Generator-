@@ -31,15 +31,24 @@ const nextConfig = {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://us.i.posthog.com https://js.stripe.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https: blob:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://us.i.posthog.com https://api.anthropic.com https://api.stripe.com https://*.supabase.co",
+              "frame-src https://js.stripe.com https://hooks.stripe.com",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
+          },
         ],
       },
     ];
   },
-};
-
-module.exports = nextConfig;/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
 };
 
 module.exports = nextConfig;
