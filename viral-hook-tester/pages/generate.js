@@ -442,7 +442,7 @@ export default function Generate() {
                   title="Paid feature"
                 >
                   📎 Upload image
-                  {!isPro && <span className="text-[10px] font-mono text-green-400 border border-green-400/30 px-1.5 py-0.5 rounded-full leading-none">PRO</span>}
+                  {!isPro && <span className="text-[10px] font-mono text-green-400 border border-green-400/30 px-1.5 py-0.5 rounded-full leading-none">CREATOR</span>}
                 </button>
               </div>
             </div>
