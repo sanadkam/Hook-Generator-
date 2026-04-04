@@ -160,7 +160,7 @@ export default function Swipe() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-black mb-1">Hook Blueprints</h1>
-            <p className="text-white/40 text-sm">{TEMPLATES.length} proven hook skeletons. Filter by type or platform, copy the structure, fill in your content.</p>
+            <p className="text-white/40 text-sm">{TEMPLATES.length} proven hook skeletons — each scored based on engagement patterns from 10,000+ viral posts. Filter by type, study the structure, apply it to your content.</p>
           </div>
 
           {/* Search */}
