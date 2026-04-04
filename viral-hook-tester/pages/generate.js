@@ -1,19 +1,20 @@
 import { useState, useEffect, useRef, useCallback, useContext } from 'react';
+import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import { AuthContext } from '../lib/AuthContext';
 import Head from 'next/head';
 import Link from 'next/link';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const PLATFORMS  = ['TikTok', 'YouTube', 'Instagram', 'Twitter/X', 'LinkedIn'];
-const NICHES     = ['Finance', 'Fitness', 'Beauty', 'Tech', 'Food', 'Gaming', 'Business', 'Lifestyle', 'Education', 'Comedy'];
-const FREE_LIMIT  = 3;
-const STORAGE_KEY = 'hookscore_usage_v5'; // bumped — resets all previous users
+// ─── Constants ───────────────────────────────────────────────────────────────
+const PLATFORMS = ['TikTok', 'YouTube', 'Instagram', 'Twitter/X', 'LinkedIn'];
+const NICHES = ['Finance', 'Fitness', 'Beauty', 'Tech', 'Food', 'Gaming', 'Business', 'Lifestyle', 'Education', 'Comedy'];
+const FREE_LIMIT = 3;
+const STORAGE_KEY = 'hookscore_usage_v5';
 const HISTORY_KEY = 'hookscore_history_v2';
 const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_FILE_MB    = 8;
+const MAX_FILE_MB = 8;
 
-// ─── Storage ──────────────────────────────────────────────────────────────────
+// ─── Storage ─────────────────────────────────────────────────────────────────
 function getUsageData() {
   if (typeof window === 'undefined') return { count: 0 };
   try {
@@ -23,6 +24,7 @@ function getUsageData() {
     return { count: data.count || 0 };
   } catch { return { count: 0 }; }
 }
+
 function incrementUsage() {
   if (typeof window === 'undefined') return 0;
   try {
@@ -33,6 +35,7 @@ function incrementUsage() {
     return count;
   } catch { return 0; }
 }
+
 function saveHistory(entry) {
   try {
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
@@ -40,27 +43,27 @@ function saveHistory(entry) {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 15)));
   } catch {}
 }
+
 function loadHistory() {
   try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
   catch { return []; }
 }
 
-// ─── Utilities ────────────────────────────────────────────────────────────────
-function scoreColor(s)    { return s >= 75 ? 'text-green-400' : s >= 55 ? 'text-yellow-400' : 'text-red-400'; }
-function scoreBarColor(s) { return s >= 75 ? 'bg-green-400'   : s >= 55 ? 'bg-yellow-400'   : 'bg-red-400';   }
-function scoreLabel(s)    { return s >= 88 ? 'Exceptional' : s >= 75 ? 'Strong' : s >= 60 ? 'Decent' : s >= 45 ? 'Weak' : 'Skip it'; }
-function creditsColor(r)  { return r >= 2 ? 'text-green-400' : r === 1 ? 'text-yellow-400' : 'text-red-400'; }
-
+// ─── Utilities ───────────────────────────────────────────────────────────────
+function scoreColor(s) { return s >= 75 ? 'text-green-400' : s >= 55 ? 'text-yellow-400' : 'text-red-400'; }
+function scoreBarColor(s) { return s >= 75 ? 'bg-green-400' : s >= 55 ? 'bg-yellow-400' : 'bg-red-400'; }
+function scoreLabel(s) { return s >= 88 ? 'Exceptional' : s >= 75 ? 'Strong' : s >= 60 ? 'Decent' : s >= 45 ? 'Weak' : 'Skip it'; }
+function creditsColor(r) { return r >= 2 ? 'text-green-400' : r === 1 ? 'text-yellow-400' : 'text-red-400'; }
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 }
 
-// ─── Score Bar ────────────────────────────────────────────────────────────────
+// ─── Score Bar ───────────────────────────────────────────────────────────────
 function ScoreBar({ label, score, delay = 0 }) {
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(score), delay); return () => clearTimeout(t); }, [score, delay]);
@@ -77,7 +80,7 @@ function ScoreBar({ label, score, delay = 0 }) {
   );
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// ─── Skeleton ────────────────────────────────────────────────────────────────
 function HookCardSkeleton({ delay = 0 }) {
   const [v, setV] = useState(false);
   useEffect(() => { const t = setTimeout(() => setV(true), delay); return () => clearTimeout(t); }, [delay]);
@@ -105,13 +108,12 @@ function HookCardSkeleton({ delay = 0 }) {
   );
 }
 
-// ─── Hook Card ────────────────────────────────────────────────────────────────
+// ─── Hook Card ───────────────────────────────────────────────────────────────
 function HookCard({ hook, isWinner, delay = 0 }) {
   const [visible, setVisible] = useState(false);
-  const [copied,  setCopied]  = useState(false);
+  const [copied, setCopied] = useState(false);
   useEffect(() => { const t = setTimeout(() => setVisible(true), delay); return () => clearTimeout(t); }, [delay]);
   const copy = () => navigator.clipboard.writeText(hook.text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
-
   return (
     <div className={`border rounded-2xl p-5 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} ${isWinner ? 'border-green-400/40 bg-green-400/[0.06]' : 'border-white/10 bg-white/[0.025]'}`}>
       <div className="flex items-start justify-between gap-3 mb-4">
@@ -128,18 +130,15 @@ function HookCard({ hook, isWinner, delay = 0 }) {
           <div className={`text-xs font-mono mt-1 ${scoreColor(hook.overallScore)}`}>{scoreLabel(hook.overallScore)}</div>
         </div>
       </div>
-      <button
-        onClick={copy}
-        className={`w-full py-2.5 rounded-xl text-sm font-semibold mb-4 transition-all active:scale-[0.98] ${copied ? 'bg-green-400/20 text-green-400 border border-green-400/30' : isWinner ? 'bg-green-400 hover:bg-green-300 text-black' : 'bg-white/8 hover:bg-white/12 text-white/70 hover:text-white border border-white/10'}`}
-      >
+      <button onClick={copy} className={`w-full py-2.5 rounded-xl text-sm font-semibold mb-4 transition-all active:scale-[0.98] ${copied ? 'bg-green-400/20 text-green-400 border border-green-400/30' : isWinner ? 'bg-green-400 hover:bg-green-300 text-black' : 'bg-white/8 hover:bg-white/12 text-white/70 hover:text-white border border-white/10'}`}>
         {copied ? '✓ Copied!' : 'Copy hook'}
       </button>
       <div className="space-y-2.5 mb-4">
-        <ScoreBar label="Curiosity Gap"     score={hook.scores.curiosityGap}    delay={60} />
-        <ScoreBar label="Clarity"           score={hook.scores.clarity}          delay={100} />
+        <ScoreBar label="Curiosity Gap" score={hook.scores.curiosityGap} delay={60} />
+        <ScoreBar label="Clarity" score={hook.scores.clarity} delay={100} />
         <ScoreBar label="Emotional Trigger" score={hook.scores.emotionalTrigger} delay={140} />
-        <ScoreBar label="Platform Fit"      score={hook.scores.platformFit}      delay={180} />
-        <ScoreBar label="Niche Relevance"   score={hook.scores.nicheRelevance}   delay={220} />
+        <ScoreBar label="Platform Fit" score={hook.scores.platformFit} delay={180} />
+        <ScoreBar label="Niche Relevance" score={hook.scores.nicheRelevance} delay={220} />
       </div>
       <div className="space-y-2">
         <div className="bg-white/[0.04] border border-white/8 rounded-xl px-4 py-3">
@@ -155,11 +154,14 @@ function HookCard({ hook, isWinner, delay = 0 }) {
   );
 }
 
-// ─── Upload Zone ──────────────────────────────────────────────────────────────
+// ─── Upload Zone ─────────────────────────────────────────────────────────────
 function UploadZone({ file, preview, onFile, onClear }) {
-  const inputRef  = useRef(null);
+  const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
-  const handleDrop = useCallback((e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) onFile(f); }, [onFile]);
+  const handleDrop = useCallback((e) => {
+    e.preventDefault(); setDragging(false);
+    const f = e.dataTransfer.files[0]; if (f) onFile(f);
+  }, [onFile]);
   return (
     <div>
       {preview ? (
@@ -190,31 +192,60 @@ function UploadZone({ file, preview, onFile, onClear }) {
 
 // ─── Upgrade Modal ────────────────────────────────────────────────────────────
 function UpgradeModal({ onClose, reason = 'limit' }) {
-  const stripeLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK;
+  const router = useRouter();
+  const { session } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
   const isProFeature = reason === 'proFeature';
+
+  const handleUpgrade = async () => {
+    if (!session) {
+      router.push('/login?redirect=/pricing');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ plan: 'creator' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        router.push('/pricing');
+      }
+    } catch {
+      router.push('/pricing');
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
         <div className="text-5xl mb-4">{isProFeature ? '📎' : '🔒'}</div>
         <h3 className="text-2xl font-bold mb-2">
-          {isProFeature ? 'Pro feature' : 'Free limit reached'}
+          {isProFeature ? 'Creator feature' : 'Free limit reached'}
         </h3>
         <p className="text-white/50 text-sm leading-relaxed mb-2">
-          {isProFeature
-            ? 'Image upload is available on Pro.'
-            : `You've used all ${FREE_LIMIT} free generations.`}
+          {isProFeature ? 'Image upload is available on paid plans.' : `You've used all ${FREE_LIMIT} free generations.`}
         </p>
         <p className="text-white/35 text-sm mb-8">
-          Upgrade to Pro for <span className="text-green-400 font-semibold">unlimited hooks</span> + image upload.
+          Upgrade to Creator for <span className="text-green-400 font-semibold">unlimited hooks</span> + image upload.
         </p>
         <div className="space-y-3">
-          {stripeLink && (
-            <a href={stripeLink} target="_blank" rel="noopener noreferrer" className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors">
-              Upgrade to Pro — $19/month
-            </a>
-          )}
+          <button
+            onClick={handleUpgrade}
+            disabled={loading}
+            className="block w-full py-3.5 bg-green-400 hover:bg-green-300 disabled:opacity-50 text-black font-bold rounded-2xl text-sm transition-colors cursor-pointer"
+          >
+            {loading ? 'Redirecting...' : 'Upgrade to Creator — €5.99/month'}
+          </button>
           <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">
-            See what's included →
+            See all plans →
           </Link>
         </div>
         <button onClick={onClose} className="mt-5 text-sm text-white/25 hover:text-white/50 transition-colors">Not now</button>
@@ -223,25 +254,24 @@ function UpgradeModal({ onClose, reason = 'limit' }) {
   );
 }
 
-// ─── Generator Page ───────────────────────────────────────────────────────────
+// ─── Generator Page ──────────────────────────────────────────────────────────
 export default function Generate() {
-  const [platform,   setPlatform]   = useState('TikTok');
-  const [niche,      setNiche]      = useState('Finance');
-  const [inputMode,  setInputMode]  = useState('text');
-  const [text,       setText]       = useState('');
-  const [file,       setFile]       = useState(null);
-  const [preview,    setPreview]    = useState(null);
-  const [fileError,  setFileError]  = useState(null);
-  const [loading,    setLoading]    = useState(false);
-  const [results,    setResults]    = useState(null);
-  const [error,      setError]      = useState(null);
-  const [showUpgrade,    setShowUpgrade]    = useState(false);
-  const [upgradeReason,  setUpgradeReason]  = useState('limit'); // 'limit' | 'proFeature'
-  const [usageCount,   setUsageCount]   = useState(0);
-  const [history,      setHistory]      = useState([]);
-  const [showHistory,  setShowHistory]  = useState(false);
+  const [platform, setPlatform] = useState('TikTok');
+  const [niche, setNiche] = useState('Finance');
+  const [inputMode, setInputMode] = useState('text');
+  const [text, setText] = useState('');
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [fileError, setFileError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState('limit');
+  const [usageCount, setUsageCount] = useState(0);
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [winnerCopied, setWinnerCopied] = useState(false);
-
   const resultsRef = useRef(null);
 
   useEffect(() => { setUsageCount(getUsageData().count); setHistory(loadHistory()); }, []);
@@ -249,19 +279,13 @@ export default function Generate() {
 
   const { session } = useContext(AuthContext);
   const [userPlan, setUserPlan] = useState(null);
-
   useEffect(() => {
     if (!session?.user || !supabase) return;
-    supabase
-      .from('profiles')
-      .select('plan')
-      .eq('id', session.user.id)
-      .single()
+    supabase.from('profiles').select('plan').eq('id', session.user.id).single()
       .then(({ data }) => setUserPlan(data?.plan || 'free'));
   }, [session]);
 
   const isPro = userPlan && userPlan !== 'free';
-
   const remaining = Math.max(0, FREE_LIMIT - usageCount);
 
   const handleFile = (f) => {
@@ -270,10 +294,11 @@ export default function Generate() {
     if (f.size > MAX_FILE_MB * 1024 * 1024) { setFileError(`File too large. Max ${MAX_FILE_MB}MB.`); return; }
     setFile(f); setPreview(URL.createObjectURL(f));
   };
+
   const clearFile = () => { setFile(null); if (preview) URL.revokeObjectURL(preview); setPreview(null); setFileError(null); };
 
   const generate = async () => {
-    const hasText = inputMode === 'text'   && text.trim().length > 10;
+    const hasText = inputMode === 'text' && text.trim().length > 10;
     const hasFile = inputMode === 'upload' && file;
     if (hasFile && !isPro) { setUpgradeReason('proFeature'); setShowUpgrade(true); return; }
     if (!hasText && !hasFile) {
@@ -281,36 +306,26 @@ export default function Generate() {
       return;
     }
     if (usageCount >= FREE_LIMIT) { setUpgradeReason('limit'); setShowUpgrade(true); return; }
-
     setLoading(true); setError(null); setResults(null);
     try {
       const body = { platform, niche };
       if (hasText) { body.text = text.trim(); }
-      else         { body.imageBase64 = await fileToBase64(file); body.imageMimeType = file.type; }
-
-      const res  = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      else { body.imageBase64 = await fileToBase64(file); body.imageMimeType = file.type; }
+      const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
-
-      // Always pick winner client-side from highest score
       if (data.hooks?.length > 0) {
         let bestIdx = 0, bestScore = -1;
         data.hooks.forEach((h, i) => { if (h.overallScore > bestScore) { bestScore = h.overallScore; bestIdx = i; } });
         data.winner = bestIdx;
       }
-
-      setWinnerCopied(false);
-      setResults(data);
-      const newCount = incrementUsage();
-      setUsageCount(newCount);
-      saveHistory({ platform, niche, results: data });
-      setHistory(loadHistory());
+      setWinnerCopied(false); setResults(data);
+      const newCount = incrementUsage(); setUsageCount(newCount);
+      saveHistory({ platform, niche, results: data }); setHistory(loadHistory());
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
@@ -321,9 +336,7 @@ export default function Generate() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
       <div className="min-h-screen bg-black text-white">
-
         {/* Nav */}
         <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -332,12 +345,10 @@ export default function Generate() {
           </div>
           <div className="flex items-center gap-3">
             {history.length > 0 && (
-              <button onClick={() => setShowHistory(!showHistory)} className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">
-                History
-              </button>
+              <button onClick={() => setShowHistory(!showHistory)} className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">History</button>
             )}
             <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
-            <Link href="/blueprints"   className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
+            <Link href="/blueprints" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
             <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
             {remaining === 0 ? (
               <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-xs font-mono text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors">
@@ -350,8 +361,6 @@ export default function Generate() {
         </nav>
 
         <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 pb-20">
-
-          {/* Page title */}
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-black mb-1">Generate Viral Hooks</h1>
             <p className="text-white/40 text-sm">Pick your platform, paste your content, get 3 scored hooks instantly.</p>
@@ -383,7 +392,7 @@ export default function Generate() {
             </div>
           )}
 
-          {/* Credit bar — after first use */}
+          {/* Credit bar */}
           {usageCount > 0 && remaining > 0 && (
             <div className="mb-6 bg-white/[0.03] border border-white/8 rounded-2xl px-4 py-3">
               <div className="flex items-center justify-between mb-2">
@@ -404,9 +413,7 @@ export default function Generate() {
             <p className="text-xs font-mono tracking-widest text-white/25 mb-3">PLATFORM</p>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {PLATFORMS.map(p => (
-                <button key={p} onClick={() => setPlatform(p)} className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${platform === p ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>
-                  {p}
-                </button>
+                <button key={p} onClick={() => setPlatform(p)} className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${platform === p ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>{p}</button>
               ))}
             </div>
           </div>
@@ -416,9 +423,7 @@ export default function Generate() {
             <p className="text-xs font-mono tracking-widest text-white/25 mb-3">NICHE</p>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide flex-wrap">
               {NICHES.map(n => (
-                <button key={n} onClick={() => setNiche(n)} className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${niche === n ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>
-                  {n}
-                </button>
+                <button key={n} onClick={() => setNiche(n)} className={`px-4 py-2 rounded-full text-sm border font-medium transition-all whitespace-nowrap flex-shrink-0 ${niche === n ? 'bg-green-400 text-black border-green-400' : 'border-white/15 text-white/50 hover:border-white/35 hover:text-white/80'}`}>{n}</button>
               ))}
             </div>
           </div>
@@ -428,25 +433,19 @@ export default function Generate() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
               <p className="text-xs font-mono tracking-widest text-white/25">YOUR CONTENT</p>
               <div className="flex bg-white/[0.05] border border-white/10 rounded-xl p-0.5 w-full sm:w-auto">
-                {/* Text tab — always available */}
-                <button
-                  onClick={() => { setInputMode('text'); setError(null); }}
-                  className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center ${inputMode === 'text' ? 'bg-white/15 text-white' : 'text-white/35 hover:text-white/60'}`}
-                >
+                <button onClick={() => { setInputMode('text'); setError(null); }} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center ${inputMode === 'text' ? 'bg-white/15 text-white' : 'text-white/35 hover:text-white/60'}`}>
                   ✏️ Paste text
                 </button>
-                {/* Upload tab — Pro only */}
                 <button
                   onClick={() => { if (isPro) { setInputMode('upload'); setError(null); } else { setUpgradeReason('proFeature'); setShowUpgrade(true); } }}
                   className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center text-white/25 flex items-center justify-center gap-1.5"
-                  title="Pro feature"
+                  title="Paid feature"
                 >
                   📎 Upload image
                   {!isPro && <span className="text-[10px] font-mono text-green-400 border border-green-400/30 px-1.5 py-0.5 rounded-full leading-none">PRO</span>}
                 </button>
               </div>
             </div>
-
             {inputMode === 'text' ? (
               <div className="relative">
                 <textarea
@@ -481,9 +480,7 @@ export default function Generate() {
           </div>
 
           {/* Error */}
-          {error && (
-            <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{error}</div>
-          )}
+          {error && <div className="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{error}</div>}
 
           {/* Generate button */}
           <button
@@ -501,10 +498,7 @@ export default function Generate() {
               </span>
             ) : remaining === 0 ? '🔒 Upgrade to generate more' : '⚡ Generate My Hooks'}
           </button>
-
-          {usageCount === 0 && (
-            <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free generations · No signup needed</p>
-          )}
+          {usageCount === 0 && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free generations · No signup needed</p>}
 
           {/* ── Results ── */}
           {(loading || results) && (
@@ -517,7 +511,6 @@ export default function Generate() {
                   <HookCardSkeleton delay={200} />
                 </>
               )}
-
               {results && !loading && (
                 <>
                   {results.contentSummary && (
@@ -529,8 +522,6 @@ export default function Generate() {
                       </div>
                     </div>
                   )}
-
-                  {/* Winner banner */}
                   {results.hooks[results.winner] && (
                     <div className="border border-green-400/30 bg-gradient-to-b from-green-400/10 to-green-400/[0.04] rounded-2xl p-6 text-center">
                       <p className="text-xs font-mono text-green-400 tracking-widest mb-3">🏆 TOP HOOK</p>
@@ -548,8 +539,6 @@ export default function Generate() {
                       </button>
                     </div>
                   )}
-
-                  {/* All 3 hooks */}
                   <div>
                     <p className="text-xs font-mono text-white/25 tracking-widest mb-4">ALL 3 OPTIONS</p>
                     <div className="space-y-4">
@@ -558,15 +547,13 @@ export default function Generate() {
                       ))}
                     </div>
                   </div>
-
-                  {/* Bottom CTA */}
                   <div className="border border-white/10 rounded-2xl p-6 text-center">
                     <p className="text-white/40 text-sm mb-1">
                       {remaining === 0 ? "You've used all your free generations." : `${remaining} free generation${remaining !== 1 ? 's' : ''} remaining`}
                     </p>
-                    {remaining === 0 && <p className="text-white/25 text-xs mb-4">Go unlimited for $19/month</p>}
+                    {remaining === 0 && <p className="text-white/25 text-xs mb-4">Start from €5.99/month — cancel anytime</p>}
                     <Link href="/pricing" className="inline-block px-6 py-3 bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-xl text-sm text-white/60 hover:text-white transition-all">
-                      {remaining === 0 ? 'Upgrade to Pro →' : 'Go unlimited with Pro →'}
+                      {remaining === 0 ? 'See plans →' : 'Go unlimited →'}
                     </Link>
                   </div>
                 </>
@@ -575,8 +562,7 @@ export default function Generate() {
           )}
         </main>
       </div>
-
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason={upgradeReason} />}
     </>
   );
-}
+              }
