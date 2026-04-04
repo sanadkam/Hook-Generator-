@@ -1,5 +1,9 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import { useState, useContext } from 'react';
+import { useRouter } from 'next/router';
+import { AuthContext } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const PLANS = [
   {
@@ -15,6 +19,7 @@ const PLANS = [
     ],
     cta: 'Start free',
     ctaHref: '/generate',
+    plan: null,
     highlight: false,
   },
   {
@@ -30,7 +35,8 @@ const PLANS = [
       'Priority support',
     ],
     cta: 'Get Creator',
-    ctaHref: '/generate',
+    ctaHref: null,
+    plan: 'creator',
     highlight: false,
   },
   {
@@ -47,7 +53,8 @@ const PLANS = [
       'Early access to new features',
     ],
     cta: 'Get Pro',
-    ctaHref: '/generate',
+    ctaHref: null,
+    plan: 'pro',
     highlight: true,
   },
   {
@@ -66,7 +73,8 @@ const PLANS = [
       'Dedicated account manager',
     ],
     cta: 'Get Agency',
-    ctaHref: '/generate',
+    ctaHref: null,
+    plan: 'agency',
     highlight: false,
   },
 ];
@@ -90,6 +98,78 @@ const FAQS = [
   },
 ];
 
+function PlanButton({ plan, highlight }) {
+  const { session } = useContext(AuthContext);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  // Free plan — just link to /generate
+  if (!plan.plan) {
+    return (
+      <Link
+        href={plan.ctaHref}
+        className={`block text-center py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+          highlight
+            ? 'bg-green-500 hover:bg-green-400 text-black'
+            : 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]'
+        }`}
+      >
+        {plan.cta}
+      </Link>
+    );
+  }
+
+  // Paid plan — call checkout API
+  const handleCheckout = async () => {
+    if (!session) {
+      router.push('/login?redirect=/pricing');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = session.access_token;
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ plan: plan.plan }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Something went wrong. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (err) {
+      console.error('Checkout error:', err);
+      alert('Something went wrong. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCheckout}
+      disabled={loading}
+      className={`block w-full text-center py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50 ${
+        highlight
+          ? 'bg-green-500 hover:bg-green-400 text-black'
+          : 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]'
+      }`}
+    >
+      {loading ? 'Redirecting...' : plan.cta}
+    </button>
+  );
+}
+
 export default function Pricing() {
   return (
     <div className="min-h-screen bg-black text-white">
@@ -106,17 +186,16 @@ export default function Pricing() {
             HookLab
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/generate"   className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Generate</Link>
-            <Link href="/polish"     className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
+            <Link href="/generate" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Generate</Link>
+            <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
             <Link href="/blueprints" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
-            <Link href="/pricing"    className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
-            <Link href="/generate"   className="ml-2 px-3 py-1.5 bg-green-500 hover:bg-green-400 text-black text-sm font-semibold rounded-lg transition-colors">Try free &#8594;</Link>
+            <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
+            <Link href="/generate" className="ml-2 px-3 py-1.5 bg-green-500 hover:bg-green-400 text-black text-sm font-semibold rounded-lg transition-colors">Try free &#8594;</Link>
           </div>
         </div>
       </nav>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
-
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">
@@ -162,16 +241,7 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <Link
-                href={plan.ctaHref}
-                className={`block text-center py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                  plan.highlight
-                    ? 'bg-green-500 hover:bg-green-400 text-black'
-                    : 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]'
-                }`}
-              >
-                {plan.cta}
-              </Link>
+              <PlanButton plan={plan} highlight={plan.highlight} />
             </div>
           ))}
         </div>
@@ -192,12 +262,14 @@ export default function Pricing() {
         {/* Bottom CTA */}
         <div className="text-center mt-20">
           <p className="text-white/40 text-sm mb-4">No credit card required to start</p>
-          <Link href="/generate" className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl transition-colors">
+          <Link
+            href="/generate"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-bold rounded-xl transition-colors"
+          >
             Start generating free &#8594;
           </Link>
         </div>
-
       </main>
     </div>
   );
-}
+                    }
