@@ -72,6 +72,29 @@ export default function Home() {
               </Link>
             </div>
           </section>
+
+          <section className="border-t border-white/[0.06]">
+            <div className="max-w-4xl mx-auto px-5 py-20">
+              <div className="text-center mb-12">
+                <p className="text-xs font-mono tracking-widest text-white/25 mb-4">ALREADY HAVE AN IDEA?</p>
+                <h2 className="text-3xl sm:text-4xl font-black mb-4">Rough hook? Fix it in seconds.</h2>
+                <p className="text-white/40 text-base max-w-xl mx-auto">Paste in a draft and get 3 sharper, punchier rewrites — each targeting a different psychological angle.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10">
+                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
+                  <p className="text-xs font-mono text-white/25 tracking-widest mb-3">BEFORE</p>
+                  <p className="text-white/50 text-sm italic">&ldquo;I tried this diet for 30 days&rdquo;</p>
+                </div>
+                <div className="bg-green-400/5 border border-green-400/20 rounded-2xl p-6">
+                  <p className="text-xs font-mono text-green-400/60 tracking-widest mb-3">AFTER</p>
+                  <p className="text-white text-sm font-medium">&ldquo;I ate nothing but rice for 30 days. Here&rsquo;s what happened to my body.&rdquo;</p>
+                </div>
+              </div>
+              <div className="text-center">
+                <Link href="/polish" className="inline-block px-8 py-3.5 bg-white/[0.06] hover:bg-white/10 text-white font-semibold rounded-2xl text-sm transition-all border border-white/10">&#9997; Polish a hook &rarr;</Link>
+              </div>
+            </div>
+          </section>
           <section className="border-t border-white/[0.06] bg-white/[0.01]">
             <div className="max-w-4xl mx-auto px-5 py-20">
               <p className="text-xs font-mono tracking-widest text-white/25 text-center mb-12">HOW IT WORKS</p>
