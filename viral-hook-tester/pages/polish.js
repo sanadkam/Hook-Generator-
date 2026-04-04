@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -171,23 +172,39 @@ function AuthModal({ onClose, onSuccess }) {
 
 // ─── Upgrade Modal ────────────────────────────────────────────────────────────
 function UpgradeModal({ onClose }) {
-  const stripeLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK;
+  const router = useRouter();
+  const { session } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!session) { router.push('/login?redirect=/pricing'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ plan: 'creator' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) window.location.href = data.url;
+      else router.push('/pricing');
+    } catch { router.push('/pricing'); }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
         <div className="text-5xl mb-4">&#128274;</div>
         <h3 className="text-2xl font-bold mb-2">Free limit reached</h3>
         <p className="text-white/50 text-sm leading-relaxed mb-2">You&apos;ve used all {FREE_LIMIT} free improvements this month.</p>
-        <p className="text-white/35 text-sm mb-8">Upgrade to Pro for <span className="text-green-400 font-semibold">unlimited rewrites</span> + generation.</p>
+        <p className="text-white/35 text-sm mb-8">Upgrade to Creator for <span className="text-green-400 font-semibold">unlimited rewrites</span> + generation.</p>
         <div className="space-y-3">
-          {stripeLink && (
-            <a href={stripeLink} target="_blank" rel="noopener noreferrer"
-              className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors">
-              Upgrade to Pro — $19/month
-            </a>
-          )}
+          <button onClick={handleUpgrade} disabled={loading}
+            className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors disabled:opacity-60">
+            {loading ? 'Redirecting…' : 'Upgrade to Creator — €5.99/month'}
+          </button>
           <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">
-            See what&apos;s included →
+            See all plans →
           </Link>
         </div>
         <button onClick={onClose} className="mt-5 text-sm text-white/25 hover:text-white/50 transition-colors">Not now</button>
