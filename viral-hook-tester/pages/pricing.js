@@ -55,7 +55,7 @@ const PLANS = [
     cta: 'Get Pro',
     ctaHref: null,
     plan: 'pro',
-    highlight: true,
+    highlight: false,
   },
   ];
 
