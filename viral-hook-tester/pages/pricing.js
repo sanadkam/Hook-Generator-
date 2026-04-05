@@ -57,27 +57,7 @@ const PLANS = [
     plan: 'pro',
     highlight: true,
   },
-  {
-    name: 'Agency',
-    price: '&#8364;20.99',
-    period: '/mo',
-    description: 'For teams and agencies',
-    features: [
-      'Unlimited Hook Generations',
-      'Unlimited Polish uses',
-      'Blueprints always free',
-      'All platforms supported',
-      'Priority support',
-      'Early access to new features',
-      'Multiple team members',
-      'Dedicated account manager',
-    ],
-    cta: 'Get Agency',
-    ctaHref: null,
-    plan: 'agency',
-    highlight: false,
-  },
-];
+  ];
 
 const FAQS = [
   {
