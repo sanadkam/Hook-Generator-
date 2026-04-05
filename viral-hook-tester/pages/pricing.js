@@ -190,9 +190,7 @@ export default function Pricing() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">
           {PLANS.map(plan => (
             <div
-              key={plan.name}
-              className={`relative rounded-2xl border p-6 flex flex-col ${
-                bg-white/[0.03] border-white/[0.08]'
+              className={`relative rounded-2xl border p-6 flex flex-col bg-white/[0.03] border-white/[0.08]`}
               }`}
             >
               <div className="mb-5">
