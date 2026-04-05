@@ -57,7 +57,7 @@ const PLANS = [
     plan: 'pro',
     highlight: false,
   },
-  ];
+];
 
 const FAQS = [
   {
@@ -83,29 +83,24 @@ function PlanButton({ plan, highlight }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // Free plan — just link to /generate
+  // Free plan
   if (!plan.plan) {
     return (
       <Link
         href={plan.ctaHref}
-        className={`block text-center py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-          highlight
-            ? 'bg-green-500 hover:bg-green-400 text-black'
-            : 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]'
-        }`}
+        className="block text-center py-2.5 rounded-xl text-sm font-semibold transition-colors bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]"
       >
         {plan.cta}
       </Link>
     );
   }
 
-  // Paid plan — call checkout API
+  // Paid plan
   const handleCheckout = async () => {
     if (!session) {
       router.push('/login?redirect=/pricing');
       return;
     }
-
     setLoading(true);
     try {
       const token = session.access_token;
@@ -117,16 +112,12 @@ function PlanButton({ plan, highlight }) {
         },
         body: JSON.stringify({ plan: plan.plan }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         alert(data.error || 'Something went wrong. Please try again.');
         setLoading(false);
         return;
       }
-
-      // Redirect to Stripe Checkout
       window.location.href = data.url;
     } catch (err) {
       console.error('Checkout error:', err);
@@ -139,11 +130,7 @@ function PlanButton({ plan, highlight }) {
     <button
       onClick={handleCheckout}
       disabled={loading}
-      className={`block w-full text-center py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50 ${
-        highlight
-          ? 'bg-green-500 hover:bg-green-400 text-black'
-          : 'bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]'
-      }`}
+      className="block w-full text-center py-2.5 rounded-xl text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50 bg-white/[0.07] hover:bg-white/[0.12] text-white border border-white/[0.1]"
     >
       {loading ? 'Redirecting...' : plan.cta}
     </button>
@@ -187,11 +174,11 @@ export default function Pricing() {
         </div>
 
         {/* Plans grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-20 max-w-4xl mx-auto">
           {PLANS.map(plan => (
             <div
-              className={`relative rounded-2xl border p-6 flex flex-col bg-white/[0.03] border-white/[0.08]`}
-              }`}
+              key={plan.name}
+              className="relative rounded-2xl border p-6 flex flex-col bg-white/[0.03] border-white/[0.08]"
             >
               <div className="mb-5">
                 <p className="text-sm text-white/40 font-medium uppercase tracking-widest mb-1">{plan.name}</p>
@@ -201,7 +188,6 @@ export default function Pricing() {
                 </div>
                 <p className="text-sm text-white/50">{plan.description}</p>
               </div>
-
               <ul className="space-y-2 mb-6 flex-1">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm text-white/70">
@@ -210,7 +196,6 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-
               <PlanButton plan={plan} highlight={plan.highlight} />
             </div>
           ))}
@@ -242,4 +227,4 @@ export default function Pricing() {
       </main>
     </div>
   );
-                    }
+                }
