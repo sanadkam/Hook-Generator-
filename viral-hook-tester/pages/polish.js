@@ -5,12 +5,12 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
 
-// âââ Constants âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Constants ───────────────────────────────────────────────────────────────
 const PLATFORMS = ['TikTok', 'YouTube', 'Instagram', 'Twitter/X', 'LinkedIn'];
 const NICHES = ['Finance', 'Fitness', 'Beauty', 'Tech', 'Food', 'Gaming', 'Business', 'Lifestyle', 'Education', 'Comedy'];
 const FREE_LIMIT = 3;
 
-// âââ Utilities ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Utilities ────────────────────────────────────────────────────────────────
 function scoreColor(s) { return s >= 75 ? 'text-green-400' : s >= 55 ? 'text-yellow-400' : 'text-red-400'; }
 function scoreBarColor(s) { return s >= 75 ? 'bg-green-400' : s >= 55 ? 'bg-yellow-400' : 'bg-red-400'; }
 function scoreLabel(s) { return s >= 88 ? 'Exceptional' : s >= 75 ? 'Strong' : s >= 60 ? 'Decent' : s >= 45 ? 'Weak' : 'Skip it'; }
@@ -19,7 +19,7 @@ function styleLabel(s) {
   return map[s] || s;
 }
 
-// âââ Score Bar ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Score Bar ────────────────────────────────────────────────────────────────
 function ScoreBar({ label, score, delay = 0 }) {
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(score), delay); return () => clearTimeout(t); }, [score, delay]);
@@ -36,7 +36,7 @@ function ScoreBar({ label, score, delay = 0 }) {
   );
 }
 
-// âââ Rewrite Card âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Rewrite Card ─────────────────────────────────────────────────────────────
 function RewriteCard({ rewrite, rank, delay = 0 }) {
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -59,7 +59,7 @@ function RewriteCard({ rewrite, rank, delay = 0 }) {
         </div>
       </div>
       <button onClick={copy} className={`w-full py-2.5 rounded-xl text-sm font-semibold mb-4 transition-all active:scale-[0.98] ${copied ? 'bg-green-400/20 text-green-400 border border-green-400/30' : 'bg-white/8 hover:bg-white/12 text-white/70 hover:text-white border border-white/10'}`}>
-        {copied ? 'â Copied!' : 'Copy hook'}
+        {copied ? '✓ Copied!' : 'Copy hook'}
       </button>
       <div className="space-y-2.5 mb-4">
         <ScoreBar label="Curiosity Gap" score={rewrite.scores.curiosityGap} delay={60} />
@@ -78,7 +78,7 @@ function RewriteCard({ rewrite, rank, delay = 0 }) {
   );
 }
 
-// âââ Auth Modal âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Auth Modal ───────────────────────────────────────────────────────────────
 function AuthModal({ onClose, onSuccess }) {
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
@@ -125,7 +125,7 @@ function AuthModal({ onClose, onSuccess }) {
       <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl">
         {magicSent ? (
           <div className="text-center">
-            <div className="text-4xl mb-4">ð¬</div>
+            <div className="text-4xl mb-4">📬</div>
             <h3 className="text-xl font-bold mb-2">Check your email</h3>
             <p className="text-white/50 text-sm leading-relaxed mb-6">We sent a link to <span className="text-white/80">{email}</span>. Click it to sign in and continue.</p>
             <button onClick={onClose} className="text-sm text-white/30 hover:text-white/60 transition-colors">Close</button>
@@ -133,9 +133,9 @@ function AuthModal({ onClose, onSuccess }) {
         ) : (
           <>
             <div className="text-center mb-6">
-              <div className="text-3xl mb-3">ð</div>
+              <div className="text-3xl mb-3">🔒</div>
               <h3 className="text-xl font-bold mb-1">{mode === 'signup' ? 'Create your account' : 'Sign in to continue'}</h3>
-              <p className="text-white/40 text-sm">Free account Â· 3 improvements/month</p>
+              <p className="text-white/40 text-sm">Free account · 3 improvements/month</p>
             </div>
             <button onClick={handleGoogle} disabled={loading} className="w-full py-3 mb-4 flex items-center justify-center gap-2 bg-white hover:bg-white/90 text-black font-semibold rounded-xl text-sm transition-colors disabled:opacity-50">
               <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -153,7 +153,7 @@ function AuthModal({ onClose, onSuccess }) {
               )}
               {error && <p className="text-red-400 text-xs">{error}</p>}
               <button type="submit" disabled={loading} className="w-full py-3 bg-green-400 hover:bg-green-300 text-black font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
-                {loading ? 'Loadingâ¦' : mode === 'magic' ? 'Send magic link' : mode === 'signup' ? 'Create account' : 'Sign in'}
+                {loading ? 'Loading…' : mode === 'magic' ? 'Send magic link' : mode === 'signup' ? 'Create account' : 'Sign in'}
               </button>
             </form>
             <div className="mt-4 space-y-2 text-center">
@@ -174,7 +174,7 @@ function AuthModal({ onClose, onSuccess }) {
   );
 }
 
-// âââ Upgrade Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Upgrade Modal ────────────────────────────────────────────────────────────
 function UpgradeModal({ onClose }) {
   const router = useRouter();
   const { session } = useAuth();
@@ -198,9 +198,9 @@ function UpgradeModal({ onClose }) {
         <p className="text-white/35 text-sm mb-8">Upgrade to Creator for <span className="text-green-400 font-semibold">unlimited rewrites</span> + generation.</p>
         <div className="space-y-3">
           <button onClick={handleUpgrade} disabled={loading} className="block w-full py-3.5 bg-green-400 hover:bg-green-300 text-black font-bold rounded-2xl text-sm transition-colors disabled:opacity-60">
-            {loading ? 'Redirectingâ¦' : 'Upgrade to Creator â â¬5.99/month'}
+            {loading ? 'Redirecting…' : 'Upgrade to Creator — €5.99/month'}
           </button>
-          <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">See all plans â</Link>
+          <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">See all plans →</Link>
         </div>
         <button onClick={onClose} className="mt-5 text-sm text-white/25 hover:text-white/50 transition-colors">Not now</button>
       </div>
@@ -208,7 +208,7 @@ function UpgradeModal({ onClose }) {
   );
 }
 
-// âââ Main Page ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Improve() {
   const { session, authLoading, authEnabled } = useAuth();
   const [platform, setPlatform] = useState('TikTok');
@@ -294,7 +294,7 @@ export default function Improve() {
               )
             )}
             {remaining === 0 ? (
-              <button onClick={() => setShowUpgrade(true)} className="text-xs font-semibold text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors ml-1">Upgrade â</button>
+              <button onClick={() => setShowUpgrade(true)} className="text-xs font-semibold text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors ml-1">Upgrade →</button>
             ) : (
               <span className="hidden sm:inline text-xs font-mono ml-1 text-white/30">{remaining} free uses left</span>
             )}
@@ -304,7 +304,7 @@ export default function Improve() {
         <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10 pb-20">
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-black mb-1">Rewrite &amp; Improve</h1>
-            <p className="text-white/40 text-sm">Paste your draft hook. Get your score, your main weakness, and 3 stronger rewrites â each targeting a different psychological angle.</p>
+            <p className="text-white/40 text-sm">Paste your draft hook. Get your score, your main weakness, and 3 stronger rewrites — each targeting a different psychological angle.</p>
           </div>
 
           <div className="mb-7">
@@ -350,9 +350,9 @@ export default function Improve() {
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
                 Rewriting your hook...
               </span>
-            ) : remaining === 0 ? 'ð Upgrade to improve more' : 'â Improve My Hook'}
+            ) : remaining === 0 ? '🔒 Upgrade to improve more' : '✍ Improve My Hook'}
           </button>
-          {!session && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free rewrites per month Â· <button onClick={() => setShowAuth(true)} className="underline hover:text-white/40 transition-colors">Sign in</button> to track usage</p>}
+          {!session && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free rewrites per month · <button onClick={() => setShowAuth(true)} className="underline hover:text-white/40 transition-colors">Sign in</button> to track usage</p>}
 
           {results && !loading && (
             <div className="mt-14 space-y-6">
@@ -395,7 +395,7 @@ export default function Improve() {
                     onClick={() => navigator.clipboard.writeText(bestRewrite.text).then(() => { setBestCopied(true); setTimeout(() => setBestCopied(false), 2000); })}
                     className={`px-6 py-2.5 text-sm font-bold rounded-xl transition-all active:scale-95 ${bestCopied ? 'bg-green-400/20 text-green-400 border border-green-400/40' : 'bg-green-400 hover:bg-green-300 text-black'}`}
                   >
-                    {bestCopied ? 'â Copied!' : 'Copy best rewrite'}
+                    {bestCopied ? '✓ Copied!' : 'Copy best rewrite'}
                   </button>
                 </div>
               )}
@@ -409,7 +409,7 @@ export default function Improve() {
 
               <div className="border border-white/10 rounded-2xl p-6 text-center">
                 <p className="text-white/40 text-sm mb-3">Want to generate hooks from scratch?</p>
-                <Link href="/generate" className="inline-block px-6 py-3 bg-green-400 hover:bg-green-300 text-black font-bold rounded-xl text-sm transition-all">Try the Generator â</Link>
+                <Link href="/generate" className="inline-block px-6 py-3 bg-green-400 hover:bg-green-300 text-black font-bold rounded-xl text-sm transition-all">Try the Generator →</Link>
               </div>
             </div>
           )}
