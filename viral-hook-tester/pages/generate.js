@@ -5,7 +5,7 @@ import { AuthContext } from '../lib/AuthContext';
 import Head from 'next/head';
 import Link from 'next/link';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// âââ Constants âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const PLATFORMS = ['TikTok', 'YouTube', 'Instagram', 'Twitter/X', 'LinkedIn'];
 const NICHES = ['Finance', 'Fitness', 'Beauty', 'Tech', 'Food', 'Gaming', 'Business', 'Lifestyle', 'Education', 'Comedy'];
 const FREE_LIMIT = 3;
@@ -14,7 +14,7 @@ const HISTORY_KEY = 'hookscore_history_v2';
 const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_MB = 8;
 
-// ─── Storage ─────────────────────────────────────────────────────────────────
+// âââ Storage ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function getUsageData() {
   if (typeof window === 'undefined') return { count: 0 };
   try {
@@ -49,7 +49,7 @@ function loadHistory() {
   catch { return []; }
 }
 
-// ─── Utilities ───────────────────────────────────────────────────────────────
+// âââ Utilities ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function scoreColor(s) { return s >= 75 ? 'text-green-400' : s >= 55 ? 'text-yellow-400' : 'text-red-400'; }
 function scoreBarColor(s) { return s >= 75 ? 'bg-green-400' : s >= 55 ? 'bg-yellow-400' : 'bg-red-400'; }
 function scoreLabel(s) { return s >= 88 ? 'Exceptional' : s >= 75 ? 'Strong' : s >= 60 ? 'Decent' : s >= 45 ? 'Weak' : 'Skip it'; }
@@ -63,7 +63,7 @@ function fileToBase64(file) {
   });
 }
 
-// ─── Score Bar ───────────────────────────────────────────────────────────────
+// âââ Score Bar ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function ScoreBar({ label, score, delay = 0 }) {
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(score), delay); return () => clearTimeout(t); }, [score, delay]);
@@ -80,7 +80,7 @@ function ScoreBar({ label, score, delay = 0 }) {
   );
 }
 
-// ─── Skeleton ────────────────────────────────────────────────────────────────
+// âââ Skeleton âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function HookCardSkeleton({ delay = 0 }) {
   const [v, setV] = useState(false);
   useEffect(() => { const t = setTimeout(() => setV(true), delay); return () => clearTimeout(t); }, [delay]);
@@ -108,7 +108,7 @@ function HookCardSkeleton({ delay = 0 }) {
   );
 }
 
-// ─── Hook Card ───────────────────────────────────────────────────────────────
+// âââ Hook Card ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function HookCard({ hook, isWinner, delay = 0 }) {
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -120,7 +120,7 @@ function HookCard({ hook, isWinner, delay = 0 }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className="text-xs font-mono text-white/30">{hook.style?.toUpperCase()}</span>
-            {isWinner && <span className="text-xs font-mono text-green-400 border border-green-400/30 px-2 py-0.5 rounded-full">🏆 WINNER</span>}
+            {isWinner && <span className="text-xs font-mono text-green-400 border border-green-400/30 px-2 py-0.5 rounded-full">ð WINNER</span>}
           </div>
           <p className="text-white text-base font-semibold leading-snug">"{hook.text}"</p>
         </div>
@@ -131,7 +131,7 @@ function HookCard({ hook, isWinner, delay = 0 }) {
         </div>
       </div>
       <button onClick={copy} className={`w-full py-2.5 rounded-xl text-sm font-semibold mb-4 transition-all active:scale-[0.98] ${copied ? 'bg-green-400/20 text-green-400 border border-green-400/30' : isWinner ? 'bg-green-400 hover:bg-green-300 text-black' : 'bg-white/8 hover:bg-white/12 text-white/70 hover:text-white border border-white/10'}`}>
-        {copied ? '✓ Copied!' : 'Copy hook'}
+        {copied ? 'â Copied!' : 'Copy hook'}
       </button>
       <div className="space-y-2.5 mb-4">
         <ScoreBar label="Curiosity Gap" score={hook.scores.curiosityGap} delay={60} />
@@ -154,7 +154,7 @@ function HookCard({ hook, isWinner, delay = 0 }) {
   );
 }
 
-// ─── Upload Zone ─────────────────────────────────────────────────────────────
+// âââ Upload Zone ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function UploadZone({ file, preview, onFile, onClear }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -168,7 +168,7 @@ function UploadZone({ file, preview, onFile, onClear }) {
         <div className="relative rounded-2xl overflow-hidden border border-white/10">
           <img src={preview} alt="Upload preview" className="w-full max-h-64 object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <button onClick={onClear} className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/70 hover:bg-black/90 border border-white/20 rounded-full text-white/70 hover:text-white transition-all text-lg">×</button>
+          <button onClick={onClear} className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/70 hover:bg-black/90 border border-white/20 rounded-full text-white/70 hover:text-white transition-all text-lg">Ã</button>
           <div className="absolute bottom-3 left-4"><p className="text-white/60 text-xs font-mono">{file?.name}</p></div>
         </div>
       ) : (
@@ -179,9 +179,9 @@ function UploadZone({ file, preview, onFile, onClear }) {
           onClick={() => inputRef.current?.click()}
           className={`border-2 border-dashed rounded-2xl px-6 py-12 text-center cursor-pointer transition-all ${dragging ? 'border-green-400/60 bg-green-400/5' : 'border-white/15 hover:border-white/30 hover:bg-white/[0.02]'}`}
         >
-          <div className="text-4xl mb-3">📎</div>
+          <div className="text-4xl mb-3">ð</div>
           <p className="text-white/60 text-sm font-medium mb-1">Drop a screenshot or image</p>
-          <p className="text-white/25 text-xs">PNG, JPG, WEBP, GIF · Max {MAX_FILE_MB}MB</p>
+          <p className="text-white/25 text-xs">PNG, JPG, WEBP, GIF Â· Max {MAX_FILE_MB}MB</p>
           <p className="text-white/20 text-xs mt-1">or click to browse</p>
         </div>
       )}
@@ -190,63 +190,40 @@ function UploadZone({ file, preview, onFile, onClear }) {
   );
 }
 
-// ─── Upgrade Modal ────────────────────────────────────────────────────────────
+// âââ Upgrade Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function UpgradeModal({ onClose, reason = 'limit' }) {
   const router = useRouter();
   const { session } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const isProFeature = reason === 'proFeature';
-
   const handleUpgrade = async () => {
-    if (!session) {
-      router.push('/login?redirect=/pricing');
-      return;
-    }
+    if (!session) { router.push('/login?redirect=/pricing'); return; }
     setLoading(true);
     try {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ plan: 'creator' }),
       });
       const data = await res.json();
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        router.push('/pricing');
-      }
-    } catch {
-      router.push('/pricing');
-    }
+      if (res.ok && data.url) { window.location.href = data.url; }
+      else { router.push('/pricing'); }
+    } catch { router.push('/pricing'); }
   };
-
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-900 border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-        <div className="text-5xl mb-4">{isProFeature ? '📎' : '🔒'}</div>
-        <h3 className="text-2xl font-bold mb-2">
-          {isProFeature ? 'Creator feature' : 'Free limit reached'}
-        </h3>
+        <div className="text-5xl mb-4">{isProFeature ? 'ð' : 'ð'}</div>
+        <h3 className="text-2xl font-bold mb-2">{isProFeature ? 'Creator feature' : 'Free limit reached'}</h3>
         <p className="text-white/50 text-sm leading-relaxed mb-2">
           {isProFeature ? 'Image upload is available on paid plans.' : `You've used all ${FREE_LIMIT} free generations.`}
         </p>
-        <p className="text-white/35 text-sm mb-8">
-          Upgrade to Creator for <span className="text-green-400 font-semibold">unlimited hooks</span> + image upload.
-        </p>
+        <p className="text-white/35 text-sm mb-8">Upgrade to Creator for <span className="text-green-400 font-semibold">unlimited hooks</span> + image upload.</p>
         <div className="space-y-3">
-          <button
-            onClick={handleUpgrade}
-            disabled={loading}
-            className="block w-full py-3.5 bg-green-400 hover:bg-green-300 disabled:opacity-50 text-black font-bold rounded-2xl text-sm transition-colors cursor-pointer"
-          >
-            {loading ? 'Redirecting...' : 'Upgrade to Creator — €5.99/month'}
+          <button onClick={handleUpgrade} disabled={loading} className="block w-full py-3.5 bg-green-400 hover:bg-green-300 disabled:opacity-50 text-black font-bold rounded-2xl text-sm transition-colors cursor-pointer">
+            {loading ? 'Redirecting...' : 'Upgrade to Creator â â¬5.99/month'}
           </button>
-          <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">
-            See all plans →
-          </Link>
+          <Link href="/pricing" className="block w-full py-3 border border-white/10 hover:border-white/25 text-white/50 hover:text-white rounded-2xl text-sm transition-all">See all plans â</Link>
         </div>
         <button onClick={onClose} className="mt-5 text-sm text-white/25 hover:text-white/50 transition-colors">Not now</button>
       </div>
@@ -254,7 +231,7 @@ function UpgradeModal({ onClose, reason = 'limit' }) {
   );
 }
 
-// ─── Generator Page ──────────────────────────────────────────────────────────
+// âââ Generator Page âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export default function Generate() {
   const [platform, setPlatform] = useState('TikTok');
   const [niche, setNiche] = useState('Finance');
@@ -302,7 +279,7 @@ export default function Generate() {
     const hasFile = inputMode === 'upload' && file;
     if (hasFile && !isPro) { setUpgradeReason('proFeature'); setShowUpgrade(true); return; }
     if (!hasText && !hasFile) {
-      setError(inputMode === 'text' ? 'Paste your content — a draft, caption, script, or a few notes.' : 'Upload a screenshot or image of your content.');
+      setError(inputMode === 'text' ? 'Paste your content â a draft, caption, script, or a few notes.' : 'Upload a screenshot or image of your content.');
       return;
     }
     if (usageCount >= FREE_LIMIT) { setUpgradeReason('limit'); setShowUpgrade(true); return; }
@@ -311,51 +288,63 @@ export default function Generate() {
       const body = { platform, niche };
       if (hasText) { body.text = text.trim(); }
       else { body.imageBase64 = await fileToBase64(file); body.imageMimeType = file.type; }
-      const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
       const data = await res.json();
+      if (res.status === 401) {
+        setError('Sign in required. Redirecting to login...');
+        setTimeout(() => { window.location.href = '/login?redirect=/generate'; }, 1000);
+        return;
+      }
       if (!res.ok) throw new Error(data.error || 'Generation failed');
       if (data.hooks?.length > 0) {
         let bestIdx = 0, bestScore = -1;
         data.hooks.forEach((h, i) => { if (h.overallScore > bestScore) { bestScore = h.overallScore; bestIdx = i; } });
         data.winner = bestIdx;
       }
-      setWinnerCopied(false); setResults(data);
-      const newCount = incrementUsage(); setUsageCount(newCount);
-      saveHistory({ platform, niche, results: data }); setHistory(loadHistory());
+      setWinnerCopied(false);
+      setResults(data);
+      const newCount = incrementUsage();
+      setUsageCount(newCount);
+      saveHistory({ platform, niche, results: data });
+      setHistory(loadHistory());
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <Head>
-        <title>Generate Hooks — HookLab</title>
+        <title>Generate Hooks â HookLab</title>
         <meta name="description" content="Generate 3 AI-scored viral hooks from your content in seconds." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="min-h-screen bg-black text-white">
+
         {/* Nav */}
-        <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">HookLab</Link>
-            <span className="hidden sm:inline text-xs font-mono text-white/25 border border-white/10 px-2 py-0.5 rounded">GENERATOR</span>
-          </div>
-          <div className="flex items-center gap-3">
+        <nav className="sticky top-0 z-40 bg-black/80 backdrop-blur border-b border-white/[0.07] px-5 h-14 flex items-center justify-between">
+          <Link href="/" className="text-lg font-black tracking-tight hover:text-white/80 transition-colors">HookLab</Link>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Link href="/generate" className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-white/[0.08]">Generate</Link>
+            <Link href="/polish" className="hidden sm:block px-3 py-1.5 rounded-lg text-sm text-white/40 hover:text-white/70 transition-colors">Polish</Link>
+            <Link href="/blueprints" className="hidden sm:block px-3 py-1.5 rounded-lg text-sm text-white/40 hover:text-white/70 transition-colors">Blueprints</Link>
+            <Link href="/pricing" className="px-3 py-1.5 rounded-lg text-sm text-white/40 hover:text-white/70 transition-colors">Pricing</Link>
+            <div className="w-px h-4 bg-white/10 mx-1.5 hidden sm:block" />
             {history.length > 0 && (
-              <button onClick={() => setShowHistory(!showHistory)} className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">History</button>
+              <button onClick={() => setShowHistory(!showHistory)} className="hidden sm:block px-3 py-1.5 rounded-lg text-sm text-white/35 hover:text-white/65 transition-colors">History</button>
             )}
-            <Link href="/polish" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Polish</Link>
-            <Link href="/blueprints" className="hidden sm:block text-sm text-white/35 hover:text-white/65 transition-colors">Blueprints</Link>
-            <Link href="/pricing" className="text-sm text-white/50 hover:text-white transition-colors">Pricing</Link>
             {remaining === 0 ? (
-              <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-xs font-mono text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors">
-                Upgrade →
-              </button>
+              <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-xs font-semibold text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors ml-1">Upgrade â</button>
             ) : (
-              <span className={`hidden sm:inline text-xs font-mono ${creditsColor(remaining)}`}>{remaining} free left</span>
+              <span className={`hidden sm:inline text-xs font-mono ml-1 ${creditsColor(remaining)}`}>{remaining} free uses left</span>
             )}
           </div>
         </nav>
@@ -371,7 +360,7 @@ export default function Generate() {
             <div className="mb-8 border border-white/10 rounded-2xl overflow-hidden">
               <div className="px-5 py-3.5 border-b border-white/8 flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Recent Generations</h3>
-                <button onClick={() => setShowHistory(false)} className="text-white/30 hover:text-white/60 text-xl">×</button>
+                <button onClick={() => setShowHistory(false)} className="text-white/30 hover:text-white/60 text-xl">Ã</button>
               </div>
               <div className="divide-y divide-white/[0.05] max-h-56 overflow-y-auto">
                 {history.map((item) => {
@@ -380,7 +369,7 @@ export default function Generate() {
                     <button key={item.id} onClick={() => { setResults(item.results); setPlatform(item.platform); setNiche(item.niche); setShowHistory(false); setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="w-full text-left px-5 py-3 hover:bg-white/[0.04] transition-colors">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <span className="text-xs text-white/35 font-mono">{item.platform} · {item.niche}</span>
+                          <span className="text-xs text-white/35 font-mono">{item.platform} Â· {item.niche}</span>
                           <p className="text-sm text-white/65 mt-0.5 truncate">{best ? `"${best.text}"` : 'No preview'}</p>
                         </div>
                         {best && <span className={`text-lg font-black font-mono shrink-0 ${scoreColor(best.overallScore)}`}>{best.overallScore}</span>}
@@ -403,7 +392,7 @@ export default function Generate() {
                 <div className={`h-full rounded-full transition-all duration-500 ${remaining >= 2 ? 'bg-green-400' : remaining === 1 ? 'bg-yellow-400' : 'bg-red-400'}`} style={{ width: `${(remaining / FREE_LIMIT) * 100}%` }} />
               </div>
               {remaining <= 1 && (
-                <p className="text-xs text-white/30 mt-2">Last free use — <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-green-400 hover:text-green-300 underline underline-offset-2">upgrade for unlimited</button></p>
+                <p className="text-xs text-white/30 mt-2">Last free use â <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-green-400 hover:text-green-300 underline underline-offset-2">upgrade for unlimited</button></p>
               )}
             </div>
           )}
@@ -434,15 +423,10 @@ export default function Generate() {
               <p className="text-xs font-mono tracking-widest text-white/25">YOUR CONTENT</p>
               <div className="flex bg-white/[0.05] border border-white/10 rounded-xl p-0.5 w-full sm:w-auto">
                 <button onClick={() => { setInputMode('text'); setError(null); }} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center ${inputMode === 'text' ? 'bg-white/15 text-white' : 'text-white/35 hover:text-white/60'}`}>
-                  ✏️ Paste text
+                  âï¸ Paste text
                 </button>
-                <button
-                  onClick={() => { if (isPro) { setInputMode('upload'); setError(null); } else { setUpgradeReason('proFeature'); setShowUpgrade(true); } }}
-                  className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center text-white/25 flex items-center justify-center gap-1.5"
-                  title="Paid feature"
-                >
-                  📎 Upload image
-                  {!isPro && <span className="text-[10px] font-mono text-green-400 border border-green-400/30 px-1.5 py-0.5 rounded-full leading-none">CREATOR</span>}
+                <button onClick={() => { if (isPro) { setInputMode('upload'); setError(null); } else { setUpgradeReason('proFeature'); setShowUpgrade(true); } }} className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-center text-white/25 flex items-center justify-center gap-1.5" title="Paid feature">
+                  ð Upload image {!isPro && <span className="text-[10px] font-mono text-green-400 border border-green-400/30 px-1.5 py-0.5 rounded-full leading-none">CREATOR</span>}
                 </button>
               </div>
             </div>
@@ -455,7 +439,7 @@ export default function Generate() {
                     platform === 'TikTok' || platform === 'Instagram'
                       ? "Describe your video, paste your script, or write your caption draft...\n\nE.g. \"I'm making a video about how I saved $20k in one year by cutting 3 subscriptions and switching to index funds\""
                       : platform === 'LinkedIn'
-                      ? "Paste your LinkedIn post draft or describe what you want to share...\n\nE.g. \"I got promoted twice without asking — here's how visibility beats hard work\""
+                      ? "Paste your LinkedIn post draft or describe what you want to share...\n\nE.g. \"I got promoted twice without asking â here's how visibility beats hard work\""
                       : "Paste your content, post draft, or describe what you want to say...\n\nE.g. \"A post about the 3 tools I use to 10x my productivity as a solo founder\""
                   }
                   rows={7}
@@ -496,11 +480,11 @@ export default function Generate() {
                 </svg>
                 Generating your hooks...
               </span>
-            ) : remaining === 0 ? '🔒 Upgrade to generate more' : '⚡ Generate My Hooks'}
+            ) : remaining === 0 ? 'ð Upgrade to generate more' : 'â¡ Generate My Hooks'}
           </button>
-          {usageCount === 0 && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free generations · No signup needed</p>}
+          {usageCount === 0 && <p className="text-center text-xs text-white/20 mt-3">{FREE_LIMIT} free generations Â· No signup needed</p>}
 
-          {/* ── Results ── */}
+          {/* ââ Results ââ */}
           {(loading || results) && (
             <div ref={resultsRef} className="mt-14 space-y-5">
               {loading && (
@@ -515,7 +499,7 @@ export default function Generate() {
                 <>
                   {results.contentSummary && (
                     <div className="flex items-start gap-3 px-4 py-3 bg-white/[0.04] border border-white/8 rounded-2xl">
-                      <span className="text-base shrink-0 mt-0.5">🤖</span>
+                      <span className="text-base shrink-0 mt-0.5">ð¤</span>
                       <div>
                         <p className="text-xs font-mono text-white/30 mb-1">AI UNDERSTOOD YOUR CONTENT AS:</p>
                         <p className="text-white/70 text-sm leading-relaxed">{results.contentSummary}</p>
@@ -524,7 +508,7 @@ export default function Generate() {
                   )}
                   {results.hooks[results.winner] && (
                     <div className="border border-green-400/30 bg-gradient-to-b from-green-400/10 to-green-400/[0.04] rounded-2xl p-6 text-center">
-                      <p className="text-xs font-mono text-green-400 tracking-widest mb-3">🏆 TOP HOOK</p>
+                      <p className="text-xs font-mono text-green-400 tracking-widest mb-3">ð TOP HOOK</p>
                       <p className="text-white font-bold text-xl mb-2 leading-snug">"{results.hooks[results.winner].text}"</p>
                       <p className="text-white/45 text-sm mb-5">{results.winnerReason}</p>
                       <div className="flex items-baseline justify-center gap-1">
@@ -535,7 +519,7 @@ export default function Generate() {
                         onClick={() => navigator.clipboard.writeText(results.hooks[results.winner].text).then(() => { setWinnerCopied(true); setTimeout(() => setWinnerCopied(false), 2000); })}
                         className={`mt-4 px-6 py-2.5 text-sm font-bold rounded-xl transition-all active:scale-95 ${winnerCopied ? 'bg-green-400/20 text-green-400 border border-green-400/40' : 'bg-green-400 hover:bg-green-300 text-black'}`}
                       >
-                        {winnerCopied ? '✓ Copied!' : 'Copy winning hook'}
+                        {winnerCopied ? 'â Copied!' : 'Copy winning hook'}
                       </button>
                     </div>
                   )}
@@ -551,9 +535,9 @@ export default function Generate() {
                     <p className="text-white/40 text-sm mb-1">
                       {remaining === 0 ? "You've used all your free generations." : `${remaining} free generation${remaining !== 1 ? 's' : ''} remaining`}
                     </p>
-                    {remaining === 0 && <p className="text-white/25 text-xs mb-4">Start from €5.99/month — cancel anytime</p>}
+                    {remaining === 0 && <p className="text-white/25 text-xs mb-4">Start from â¬5.99/month â cancel anytime</p>}
                     <Link href="/pricing" className="inline-block px-6 py-3 bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-xl text-sm text-white/60 hover:text-white transition-all">
-                      {remaining === 0 ? 'See plans →' : 'Go unlimited →'}
+                      {remaining === 0 ? 'See plans â' : 'Go unlimited â'}
                     </Link>
                   </div>
                 </>
@@ -565,4 +549,4 @@ export default function Generate() {
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} reason={upgradeReason} />}
     </>
   );
-              }
+}
