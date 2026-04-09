@@ -86,7 +86,7 @@ export default function Login() {
         },
       });
       if (error) throw error;
-      setSuccess('Magic link sent! Check your email â click the link to sign in instantly.');
+      setSuccess('Magic link sent! Check your email — click the link to sign in instantly.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -124,7 +124,7 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>{mode === 'signup' ? 'Create Account' : mode === 'forgot' ? 'Reset Password' : 'Sign In'} â HookLab</title>
+        <title>{mode === 'signup' ? 'Create Account' : mode === 'forgot' ? 'Reset Password' : 'Sign In'} — HookLab</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="min-h-screen bg-black text-white flex flex-col">
@@ -136,13 +136,13 @@ export default function Login() {
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="w-full max-w-sm">
             <div className="text-center mb-8">
-              <div className="text-4xl mb-4">â¡</div>
+              <div className="text-4xl mb-4">⚡</div>
               <h1 className="text-2xl font-black mb-2">
                 {mode === 'signup' ? 'Create your account' : mode === 'forgot' ? 'Reset password' : 'Welcome back'}
               </h1>
               <p className="text-white/40 text-sm">
                 {mode === 'signup'
-                  ? '3 free uses per month Â· No card required'
+                  ? '3 free uses per month · No card required'
                   : mode === 'forgot'
                   ? "Enter your email and we'll send a reset link."
                   : 'Sign in to continue making viral hooks'}
@@ -229,7 +229,7 @@ export default function Login() {
                   <div className="flex-1 h-px bg-white/10" />
                 </div>
                 <button onClick={handleMagicLink} disabled={loading} className="w-full py-3 border border-white/10 hover:border-white/25 rounded-xl text-sm text-white/50 hover:text-white transition-all disabled:opacity-40">
-                  âï¸ Send magic link (no password)
+                  ✉️ Send magic link (no password)
                 </button>
                 <p className="text-center text-xs text-white/25 mt-6">
                   {mode === 'signup' ? 'Already have an account? ' : 'New here? '}
@@ -243,7 +243,7 @@ export default function Login() {
             {mode === 'forgot' && (
               <div className="mt-4 text-center">
                 <button onClick={() => { setMode('signin'); setError(null); setSuccess(null); }} className="text-xs text-white/25 hover:text-white/50 transition-colors">
-                  â Back to sign in
+                  ← Back to sign in
                 </button>
               </div>
             )}
