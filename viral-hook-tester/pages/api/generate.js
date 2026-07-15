@@ -12,7 +12,8 @@ async function checkAuth(req) {
   if (!supabaseUrl || !serviceKey) return { ok: true, userId: null };
 
   const token = req.headers['authorization']?.replace('Bearer ', '').trim();
-  if (!token) return { ok: false, status: 401, error: 'auth_required' };
+  // Anonymous users (no token) are allowed — gated by IP rate limit + client-side localStorage
+  if (!token) return { ok: true, userId: null, plan: 'anonymous' };
 
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
   const { data: { user } } = await admin.auth.getUser(token);
@@ -204,7 +205,7 @@ export default async function handler(req, res) {
   const taskPrompt = `Analyze the content provided and generate 3 viral hook options for a ${niche} creator on ${platform}.
 
 PLATFORM: ${platformCtx.desc}
-HOOK FORMAT: ${platformCtx.format}
+HOOL FORMAT: ${platformCtx.format}
 FORMAT EXAMPLES: ${platformCtx.examples.join(' | ')}
 NICHE AUDIENCE PSYCHOLOGY: ${nicheCtx}
 
