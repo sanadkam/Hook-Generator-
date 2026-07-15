@@ -263,7 +263,8 @@ export default function Generate() {
   }, [session]);
 
   const isPro = userPlan && userPlan !== 'free';
-  const remaining = Math.max(0, FREE_LIMIT - usageCount);
+  // Paid users get unlimited generations — don't cap them at the free limit
+  const remaining = isPro ? FREE_LIMIT : Math.max(0, FREE_LIMIT - usageCount);
 
   const handleFile = (f) => {
     setFileError(null);
@@ -282,15 +283,17 @@ export default function Generate() {
       setError(inputMode === 'text' ? 'Paste your content — a draft, caption, script, or a few notes.' : 'Upload a screenshot or image of your content.');
       return;
     }
-    if (usageCount >= FREE_LIMIT) { setUpgradeReason('limit'); setShowUpgrade(true); return; }
+    if (!isPro && usageCount >= FREE_LIMIT) { setUpgradeReason('limit'); setShowUpgrade(true); return; }
     setLoading(true); setError(null); setResults(null);
     try {
       const body = { platform, niche };
       if (hasText) { body.text = text.trim(); }
       else { body.imageBase64 = await fileToBase64(file); body.imageMimeType = file.type; }
+      const headers = { 'Content-Type': 'application/json' };
+      if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
       const res = await fetch('/api/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(body)
       });
       const data = await res.json();
