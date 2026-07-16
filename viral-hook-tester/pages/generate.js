@@ -371,6 +371,8 @@ export default function Generate() {
             )}
             {remaining === 0 ? (
               <button onClick={() => { setUpgradeReason('limit'); setShowUpgrade(true); }} className="text-xs font-semibold text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors ml-1">Upgrade →</button>
+            ) : isPro ? (
+              <span className="hidden sm:inline text-xs font-mono ml-1 text-green-400/60">Unlimited ✓</span>
             ) : (
               <span className={`hidden sm:inline text-xs font-mono ml-1 ${creditsColor(remaining)}`}>{remaining} free uses left</span>
             )}
@@ -410,7 +412,7 @@ export default function Generate() {
           )}
 
           {/* Credit bar */}
-          {usageCount > 0 && remaining > 0 && (
+          {usageCount > 0 && remaining > 0 && !isPro && (
             <div className="mb-6 bg-white/[0.03] border border-white/8 rounded-2xl px-4 py-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-mono text-white/40">FREE USES</span>
@@ -571,6 +573,7 @@ export default function Generate() {
                       ))}
                     </div>
                   </div>
+                  {!isPro && (
                   <div className="border border-white/10 rounded-2xl p-6 text-center">
                     <p className="text-white/40 text-sm mb-1">
                       {remaining === 0 ? "You've used all your free generations." : `${remaining} free generation${remaining !== 1 ? 's' : ''} remaining`}
@@ -580,6 +583,7 @@ export default function Generate() {
                       {remaining === 0 ? 'See plans →' : 'Go unlimited →'}
                     </Link>
                   </div>
+                  )}
                 </>
               )}
             </div>
