@@ -295,6 +295,8 @@ export default function Improve() {
             )}
             {remaining === 0 ? (
               <button onClick={() => setShowUpgrade(true)} className="text-xs font-semibold text-green-400 border border-green-400/30 px-3 py-1.5 rounded-full hover:bg-green-400/10 transition-colors ml-1">Upgrade →</button>
+            ) : serverUsage?.plan && serverUsage.plan !== 'free' ? (
+              <span className="hidden sm:inline text-xs font-mono ml-1 text-green-400/60">Unlimited ✓</span>
             ) : (
               <span className="hidden sm:inline text-xs font-mono ml-1 text-white/30">{remaining} free uses left</span>
             )}
