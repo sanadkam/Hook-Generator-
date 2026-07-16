@@ -35,7 +35,7 @@ export default function SharePage() {
     try {
       const { d } = router.query;
       if (!d) { setError(true); return; }
-      const decoded = JSON.parse(atob(d));
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(d))));
       if (!decoded.hook || !decoded.score) { setError(true); return; }
       setData(decoded);
     } catch {
@@ -105,7 +105,7 @@ export default function SharePage() {
                   &#9889; HookLab Score
                 </div>
                 {data.platform && (
-                  <p className="text-white/35 text-sm mb-3 font-mono">{tata.platform}{data.niche ? ` · ${data.niche}` : ''}</p>
+                  <p className="text-white/35 text-sm mb-3 font-mono">{data.platform}{data.niche ? ` · ${data.niche}` : ''}</p>
                 )}
                 <h1 className="text-2xl font-black mb-2">Hook Score Card</h1>
                 <p className="text-white/40 text-sm">Scored by HookLab AI</p>
