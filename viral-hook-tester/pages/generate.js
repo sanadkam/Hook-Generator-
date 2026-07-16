@@ -63,6 +63,22 @@ function fileToBase64(file) {
   });
 }
 
+function buildShareUrl(results, platform, niche) {
+  if (typeof window === 'undefined') return '';
+  const winner = results.hooks[results.winner];
+  if (!winner) return '';
+  const payload = {
+    hook: winner.text,
+    score: winner.overallScore,
+    scores: winner.scores,
+    whyItWorks: winner.whyItWorks,
+    platform,
+    niche,
+  };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  return `${window.location.origin}/share?d=${encoded}`;
+}
+
 // ─── Score Bar ────────────────────────────────────────────────────────────────
 function ScoreBar({ label, score, delay = 0 }) {
   const [w, setW] = useState(0);
@@ -249,6 +265,7 @@ export default function Generate() {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [winnerCopied, setWinnerCopied] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const resultsRef = useRef(null);
 
   useEffect(() => { setUsageCount(getUsageData().count); setHistory(loadHistory()); }, []);
@@ -518,12 +535,24 @@ export default function Generate() {
                         <span className={`text-6xl font-black font-mono ${scoreColor(results.hooks[results.winner].overallScore)}`}>{results.hooks[results.winner].overallScore}</span>
                         <span className="text-white/25 text-xl">/100</span>
                       </div>
-                      <button
-                        onClick={() => navigator.clipboard.writeText(results.hooks[results.winner].text).then(() => { setWinnerCopied(true); setTimeout(() => setWinnerCopied(false), 2000); })}
-                        className={`mt-4 px-6 py-2.5 text-sm font-bold rounded-xl transition-all active:scale-95 ${winnerCopied ? 'bg-green-400/20 text-green-400 border border-green-400/40' : 'bg-green-400 hover:bg-green-300 text-black'}`}
-                      >
-                        {winnerCopied ? '✓ Copied!' : 'Copy winning hook'}
-                      </button>
+                      <div className="flex gap-2 mt-4">
+                        <button
+                          onClick={() => navigator.clipboard.writeText(results.hooks[results.winner].text).then(() => { setWinnerCopied(true); setTimeout(() => setWinnerCopied(false), 2000); })}
+                          className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all active:scale-95 ${winnerCopied ? 'bg-green-400/20 text-green-400 border border-green-400/40' : 'bg-green-400 hover:bg-green-300 text-black'}`}
+                        >
+                          {winnerCopied ? '✓ Copied!' : 'Copy hook'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const url = buildShareUrl(results, platform, niche);
+                            if (url) navigator.clipboard.writeText(url).then(() => { setShareCopied(true); setTimeout(() => setShareCopied(false), 2500); });
+                          }}
+                          title="Copy a shareable link to this result"
+                          className={`px-4 py-2.5 text-sm font-semibold rounded-xl border transition-all active:scale-95 ${shareCopied ? 'bg-white/10 border-white/30 text-white' : 'bg-white/[0.06] hover:bg-white/10 border-white/15 hover:border-white/30 text-white/50 hover:text-white'}`}
+                        >
+                          {shareCopied ? '✓ Link copied!' : '🔗 Share score'}
+                        </button>
+                      </div>
                     </div>
                   )}
                   <div>
