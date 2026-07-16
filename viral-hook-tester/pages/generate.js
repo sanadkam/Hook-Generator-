@@ -267,9 +267,17 @@ export default function Generate() {
   const [winnerCopied, setWinnerCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const resultsRef = useRef(null);
+  const router = useRouter();
 
   useEffect(() => { setUsageCount(getUsageData().count); setHistory(loadHistory()); }, []);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, []);
+  useEffect(() => {
+    if (!router.isReady) return;
+    const p = router.query.platform;
+    const n = router.query.niche;
+    if (p && PLATFORMS.includes(p)) setPlatform(p);
+    if (n && NICHES.includes(n)) setNiche(n);
+  }, [router.isReady]);
 
   const { session } = useContext(AuthContext);
   const [userPlan, setUserPlan] = useState(null);
